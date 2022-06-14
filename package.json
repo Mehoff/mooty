@@ -5,12 +5,16 @@
   "main": "./src/index.js",
   "scripts": {
     "start": "npx ts-node ./src/index.ts",
-    "dev": "npx nodemon ./src/index.ts"
+    "dev": "npx nodemon ./src/index.ts",
+    "deploy": "npx ts-node deploy-commands"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/builders": "^0.15.0",
+    "@discordjs/rest": "^0.5.0",
+    "discord-api-types": "^0.34.0",
     "discord.js": "^13.8.0",
     "dotenv": "^16.0.1"
   },
