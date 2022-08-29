@@ -1,12 +1,13 @@
-import { CacheType, Client, Intents, Interaction } from "discord.js";
+import { Client } from "discord.js";
 import { CommandsHandler } from "./commands-handler";
 import dotenv from "dotenv";
+import { GatewayIntentBits } from "discord-api-types/v9";
 dotenv.config();
 
 export const commandsHandler = new CommandsHandler();
 
 const client = new Client({
-  intents: [Intents.FLAGS.GUILDS],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
 });
 
 client.once("ready", async () => {
