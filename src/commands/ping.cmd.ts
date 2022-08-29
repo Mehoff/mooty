@@ -1,13 +1,36 @@
-import { CacheType, CommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  APIApplicationCommandOptionChoice,
+  CacheType,
+  CommandInteraction,
+  CommandInteractionOptionResolver,
+  Interaction,
+  SlashCommandBuilder,
+  SlashCommandStringOption,
+} from "discord.js";
 import { Command } from "../../types";
 
-const Ping: Command = {
+const Test: Command = {
   data: new SlashCommandBuilder()
-    .setName("ping")
-    .setDescription("Replies with Pong!"),
+    .setName("test")
+    .setDescription("Replies with Pong!")
+    .addStringOption((option) =>
+      option
+        .setName("option")
+        .setDescription("Option description")
+        .setRequired(true)
+        .addChoices(
+          { name: "Tres", value: "Tres" },
+          { name: "Uno", value: "Uno" }
+        )
+    ),
+  // execute: (interaction: CommandInteraction<CacheType>) => {
+  //   // interaction.reply({ body: interaction.options.get("option") });
+  //   const option = interaction.options.get<string>("option", true);
+  //   if (option) interaction.reply({ content: option.value });
+  // },
   execute: (interaction: CommandInteraction<CacheType>) => {
-    return interaction.reply("Pong");
+    const val = interaction.options;
   },
 };
 
-export default Ping;
+export default Test;
