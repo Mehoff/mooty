@@ -14,7 +14,7 @@ client.once("ready", async () => {
   console.log(`Beep-bop, I am ready!`);
 });
 
-client.on("interaction", async (interaction) => {
+client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   await commandsHandler.execute(interaction);
 });

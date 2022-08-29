@@ -1,0 +1,14 @@
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { CacheType, CommandInteraction } from "discord.js";
+import { Command } from "../../types";
+
+const Foo: Command = {
+  data: new SlashCommandBuilder()
+    .setName("foo")
+    .setDescription("Replies with Foo!"),
+  execute: (interaction: CommandInteraction<CacheType>) => {
+    return interaction.reply("Foo");
+  },
+};
+
+export default Foo;

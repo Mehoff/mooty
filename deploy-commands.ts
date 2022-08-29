@@ -7,7 +7,7 @@ import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import { Command } from "./types";
 
-async () => {
+async function deployCommands() {
   const commands: any[] = [];
   const commandsPath = path.join(__dirname, "src/commands");
   const commandFiles = fs
@@ -35,4 +35,6 @@ async () => {
     )
     .then(() => console.log("Successfully registered application commands."))
     .catch(console.error);
-};
+}
+
+deployCommands();
