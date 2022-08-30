@@ -27,7 +27,12 @@ export class Player {
 
   private audioPlayer: AudioPlayer;
 
+  // Pass interactions in params?
   public play() {
     console.log("Play");
+  }
+
+  public stop() {
+    if (this.audioPlayer) this.audioPlayer.stop();
   }
 }
