@@ -22,7 +22,9 @@ export class CommandsHandler {
     this.commands = new Collection();
   }
 
-  // Call only on "npm run dep"
+  /**
+   * Deploy commands to discord guild
+   */
   async deployCommands() {
     console.log("Deploy commands...");
 
@@ -60,11 +62,10 @@ export class CommandsHandler {
     return;
   }
 
-  // Come up with a better name later
-  async init() {
-    console.log("Init");
-    console.log(this.commandsFolderPath);
-    // Fill Command Paths again
+  /**
+   * Load commands locally
+   */
+  public async loadCommands() {
     const paths = this.readDirectory(this.commandsFolderPath);
 
     for (const commandPath of paths) {
@@ -79,6 +80,10 @@ export class CommandsHandler {
   }
 
   // Change interaction type to base interaction class ?
+  /**
+   * Executes command
+   * @param interaction Command interaction
+   */
   public async execute(interaction: CommandInteraction<CacheType>) {
     try {
       const command = this.commands.get(interaction.commandName);
@@ -95,22 +100,29 @@ export class CommandsHandler {
     }
   }
 
-  readPath(commandPath: string) {
-    if (fs.lstatSync(commandPath).isDirectory()) {
-      const innerPaths = this.readDirectory(commandPath);
+  /**
+   * Recursively reads all contents of commands folder and stores commands paths in memory
+   * @param _path Path to directory or file
+   */
+  private readPath(_path: string) {
+    if (!fs.existsSync(_path))
+      throw new Error(`Path "${_path}" does not exist`);
+
+    if (fs.lstatSync(_path).isDirectory()) {
+      const innerPaths = this.readDirectory(_path);
 
       for (const innerPath of innerPaths)
-        this.readPath(path.join(commandPath, innerPath));
-    } else if (fs.lstatSync(commandPath).isFile())
-      if (commandPath.endsWith(".cmd.ts")) this.commandPaths.push(commandPath);
+        this.readPath(path.join(_path, innerPath));
+    } else if (fs.lstatSync(_path).isFile())
+      if (_path.endsWith(".cmd.ts")) this.commandPaths.push(_path);
   }
 
   /**
-   *
+   * Reads directory. If path is not directory - throws error
    * @param directoryPath path to directory
    * @returns array if inner files and directories
    */
-  readDirectory(directoryPath: string): string[] {
+  private readDirectory(directoryPath: string): string[] {
     if (
       !fs.existsSync(directoryPath) ||
       !fs.lstatSync(directoryPath).isDirectory()
