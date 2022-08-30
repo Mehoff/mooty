@@ -1,11 +1,7 @@
 import {
-  APIApplicationCommandOptionChoice,
   CacheType,
-  CommandInteraction,
-  CommandInteractionOptionResolver,
-  Interaction,
+  ChatInputCommandInteraction,
   SlashCommandBuilder,
-  SlashCommandStringOption,
 } from "discord.js";
 import { Command } from "../../types";
 
@@ -23,13 +19,11 @@ const Test: Command = {
           { name: "Uno", value: "Uno" }
         )
     ),
-  // execute: (interaction: CommandInteraction<CacheType>) => {
-  //   // interaction.reply({ body: interaction.options.get("option") });
-  //   const option = interaction.options.get<string>("option", true);
-  //   if (option) interaction.reply({ content: option.value });
-  // },
-  execute: (interaction: CommandInteraction<CacheType>) => {
-    const val = interaction.options;
+  execute: (interaction: ChatInputCommandInteraction<CacheType>) => {
+    const val = interaction.options.getString("option");
+    if (val) {
+      return interaction.reply(val);
+    }
   },
 };
 
