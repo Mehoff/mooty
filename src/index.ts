@@ -26,3 +26,6 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
+// Map (guildId, AudioPlayer)
+// On interaction, find AudioPlayer by guildId and perform action

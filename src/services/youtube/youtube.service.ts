@@ -1,7 +1,7 @@
 import ytdl from "ytdl-core";
 import axios from "axios";
 import { Readable } from "stream";
-import { YoutubeVideoSearchResultItem } from "./youtube/types";
+import { YoutubeVideoSearchResultItem } from "./types";
 
 export class YoutubeService {
   private static options: ytdl.downloadOptions = {
