@@ -5,6 +5,8 @@ import {
   VoiceConnectionStatus,
   CreateVoiceConnectionOptions,
   JoinVoiceChannelOptions,
+  AudioPlayerStatus,
+  StreamType,
 } from "@discordjs/voice";
 import {
   CacheType,
@@ -35,36 +37,48 @@ const Play: Command = {
 
     const player = createAudioPlayer();
 
+    player.on(AudioPlayerStatus.Buffering, (err) => {
+      interaction.channel?.send("Buffering");
+    });
+
+    player.on(AudioPlayerStatus.Idle, (err) => {
+      interaction.channel?.send("Idle");
+    });
+
+    player.on(AudioPlayerStatus.Paused, (err) => {
+      interaction.channel?.send("Paused");
+    });
+
+    player.on(AudioPlayerStatus.Playing, (oldState, newState) => {
+      interaction.channel?.send("Playing");
+    });
+
+    player.on("error", (err) => {
+      console.log("Player error: ");
+      console.error(err);
+    });
+
+    const member = interaction.guild!.members.cache.get(
+      interaction.member?.user.id!
+    );
+
+    if (!member || !member.voice.channelId)
+      return await interaction.reply("Member is not in a voice channel");
+
     const connectionOptions: JoinVoiceChannelOptions &
       CreateVoiceConnectionOptions = {
-      channelId: interaction.channelId,
+      channelId: member?.voice.channelId!,
       guildId: interaction.guildId!,
       adapterCreator: interaction.guild?.voiceAdapterCreator!,
     };
 
-    console.log("Connection options: ", connectionOptions);
+    joinVoiceChannel(connectionOptions).subscribe(player);
 
-    const connection = joinVoiceChannel(connectionOptions);
-
-    connection.on(VoiceConnectionStatus.Signalling, (oldState, newState) => {
-      console.log("Signalling...");
+    const resource = createAudioResource(readable, {
+      inlineVolume: true,
     });
 
-    connection.on(VoiceConnectionStatus.Ready, (oldState, newState) => {
-      console.log("Ready...");
-    });
-
-    connection.on(VoiceConnectionStatus.Destroyed, (oldState, newState) => {
-      console.log("Destroyed...");
-    });
-
-    connection.on(VoiceConnectionStatus.Connecting, (oldState, newState) => {
-      console.log("Connectiing...");
-    });
-
-    const resource = createAudioResource(readable);
     player.play(resource);
-    connection.subscribe(player);
 
     await interaction.reply("Track is playing");
   },

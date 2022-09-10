@@ -8,7 +8,11 @@ dotenv.config();
 const commandsHandler = new CommandsHandler(path.join(__dirname, "commands"));
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildVoiceStates,
+  ],
 });
 
 client.once("ready", async () => {
