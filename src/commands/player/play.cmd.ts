@@ -18,7 +18,9 @@ import {
 import { Readable } from "stream";
 import { Command } from "../../../types";
 import { YoutubeService } from "../../services/youtube/youtube.service";
-import { PlayerService } from "../../services/players/player.service";
+import { PlayerService } from "../../services/player/player.service";
+import { ServiceResponse } from "../../classes/service-response";
+import { DEFAULT_ERROR_MESSAGE } from "../../constants";
 
 const Play: Command = {
   data: new SlashCommandBuilder()
@@ -33,12 +35,14 @@ const Play: Command = {
         .setMaxLength(499)
     ),
   execute: async (interaction: ChatInputCommandInteraction<CacheType>) => {
-    const query = interaction.options.getString("query");
-    if (!query) return await interaction.reply("Bad query, try again");
-
     // Create readable stream from playload
-    // TODO: Create handleQueryResult object, and if error - reply with interaction message
-    const readable: Readable = await YoutubeService.handleQuery(query);
+    const { data, message, isError }: ServiceResponse<Readable> =
+      await YoutubeService.handleQuery(interaction);
+
+    if (isError)
+      return await interaction.reply(message ? message : DEFAULT_ERROR_MESSAGE);
+
+    const readable: Readable = data!;
 
     // Check if connection exists
     const connection = getVoiceConnection(interaction.guildId!);

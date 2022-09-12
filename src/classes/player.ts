@@ -6,6 +6,7 @@ import {
   NoSubscriberBehavior,
 } from "@discordjs/voice";
 
+// deprecated?
 export class Player {
   constructor() {
     const createAudioPlayerOptions: CreateAudioPlayerOptions = {
