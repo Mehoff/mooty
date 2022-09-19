@@ -1,14 +1,9 @@
 import {
   joinVoiceChannel,
-  createAudioPlayer,
   createAudioResource,
-  VoiceConnectionStatus,
   CreateVoiceConnectionOptions,
   JoinVoiceChannelOptions,
-  AudioPlayerStatus,
-  StreamType,
   getVoiceConnection,
-  AudioPlayer,
 } from "@discordjs/voice";
 import {
   CacheType,
@@ -18,9 +13,13 @@ import {
 import { Readable } from "stream";
 import { Command } from "../../../types";
 import { YoutubeService } from "../../services/youtube/youtube.service";
-import { PlayerService } from "../../services/player/player.service";
+import {
+  MootyAudioPlayer,
+  PlayerService,
+} from "../../services/player/player.service";
 import { ServiceResponse } from "../../classes/service-response";
 import { DEFAULT_ERROR_MESSAGE } from "../../constants";
+import { Song } from "../../classes/song";
 
 const Play: Command = {
   data: new SlashCommandBuilder()
@@ -35,14 +34,16 @@ const Play: Command = {
         .setMaxLength(499)
     ),
   execute: async (interaction: ChatInputCommandInteraction<CacheType>) => {
+    // Refactor this to MootyPlayer updates;
+
     // Create readable stream from playload
-    const { data, message, isError }: ServiceResponse<Readable> =
+    const { data, message, isError }: ServiceResponse<Song> =
       await YoutubeService.handleQuery(interaction);
 
     if (isError)
       return await interaction.reply(message ? message : DEFAULT_ERROR_MESSAGE);
 
-    const readable: Readable = data!;
+    const song: Song = data!;
 
     // Check if connection exists
     const connection = getVoiceConnection(interaction.guildId!);
@@ -50,7 +51,7 @@ const Play: Command = {
     // If connection does not exist - player is also must be undefined, create AudioPlayer and connect to voice channel
     if (!connection) {
       // Create new a new AudioPlayer
-      const player: AudioPlayer =
+      const mooty: MootyAudioPlayer =
         PlayerService.createOrGetExistingPlayer(interaction);
 
       // Find member who used slash command
@@ -71,18 +72,28 @@ const Play: Command = {
       };
 
       // Join to voice channel and sub to player
-      joinVoiceChannel(connectionOptions).subscribe(player);
+      joinVoiceChannel(connectionOptions).subscribe(mooty.player);
 
-      // Create audio resource from readable we got from youtube-service
-      const resource = createAudioResource(readable, {
-        inlineVolume: true,
-      });
+      mooty.addSong(song);
 
-      // Play the resource
-      player.play(resource);
+      // if (mooty.current !== null)
+      //   interaction.reply("Something bad happened, dev is retarded");
+
+      // const readable: Readable = await YoutubeService.getReadable(
+      //   mooty.current?.url!
+      // );
+
+      // // Create audio resource from readable we got from youtube-service
+      // const resource = createAudioResource(readable, {
+      //   inlineVolume: true,
+      // });
+
+      // // Play the resource
+      // mooty.player.play(resource);
     } else {
       // If connection does exist, try to find AudioPlayer
-      const player = PlayerService.createOrGetExistingPlayer(interaction);
+      const mooty: MootyAudioPlayer =
+        PlayerService.createOrGetExistingPlayer(interaction);
 
       // Find member who used slash command
       const member = interaction.guild!.members.cache.get(
@@ -93,20 +104,22 @@ const Play: Command = {
       if (!member || !member.voice.channelId)
         return await interaction.reply("Member is not in a voice channel");
 
-      const connectionOptions: JoinVoiceChannelOptions &
-        CreateVoiceConnectionOptions = {
-        channelId: member?.voice.channelId!,
-        guildId: interaction.guildId!,
-        adapterCreator: interaction.guild?.voiceAdapterCreator!,
-      };
+      mooty.addSong(song);
 
-      // Create audio resource from readable we got from youtube-service
-      const resource = createAudioResource(readable, {
-        inlineVolume: true,
-      });
+      // const connectionOptions: JoinVoiceChannelOptions &
+      //   CreateVoiceConnectionOptions = {
+      //   channelId: member?.voice.channelId!,
+      //   guildId: interaction.guildId!,
+      //   adapterCreator: interaction.guild?.voiceAdapterCreator!,
+      // };
 
-      // Play the resource
-      player.play(resource);
+      // // Create audio resource from readable we got from youtube-service
+      // const resource = createAudioResource(readable, {
+      //   inlineVolume: true,
+      // });
+
+      // // Play the resource
+      // mooty.player.play(resource);
     }
 
     await interaction.reply("Track is playing");

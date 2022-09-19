@@ -7,6 +7,11 @@ import {
   ServiceErrorResponse,
   ServiceResponse,
 } from "../../classes/service-response";
+import { Song } from "../../classes/song";
+
+// Refactoring
+//    Youtube Service handle functions should return 'Song' objects, to visually display them in messages
+//    Also it must have a separate function (getReadable) which takes 'Song' as a param and returns readable
 
 export class YoutubeService {
   private static options: ytdl.downloadOptions = {
@@ -17,48 +22,63 @@ export class YoutubeService {
 
   public static async handleQuery(
     interaction: ChatInputCommandInteraction<CacheType>
-  ): Promise<ServiceResponse<Readable>> {
+  ): Promise<ServiceResponse<Song>> {
     const query = interaction.options.getString("query");
-    if (!query)
-      return new ServiceErrorResponse<Readable>("Bad query, try again");
+    if (!query) return new ServiceErrorResponse<Song>("Bad query, try again");
 
     try {
-      if (ytdl.validateURL(query)) {
-        const data: Readable = await this.getSongStreamByURL(query);
-        return new ServiceResponse<Readable>(data);
-      } else {
-        const data: Readable = await this.getSongStreamByQuery(query);
-        return new ServiceResponse<Readable>(data);
-      }
+      const song = ytdl.validateURL(query)
+        ? await this.getSongByURL(query)
+        : await this.getSongByQuery(query);
+
+      return new ServiceResponse<Song>(song);
     } catch (err) {
       console.error(err);
-      return new ServiceErrorResponse<Readable>(
+      return new ServiceErrorResponse<Song>(
         "Failed to get youtube audio stream"
       );
     }
   }
 
-  public static async getSongStreamByURL(url: string) {
-    return await ytdl(url, this.options);
+  public static async getSongByURL(url: string): Promise<Song> {
+    const id = ytdl.getURLVideoID(url);
+    const reqUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${id}&key=${process.env.YOUTUBE_API_KEY}`;
+
+    const { data } = await axios.get(encodeURI(reqUrl));
+    // TODO: Check API response!
+    console.log("Data: ", data);
+
+    if (data) throw new Error("Failed to find song by URL");
+    const item: YoutubeVideoSearchResultItem = data; // Check this!
+    // Might be YoutubeVideoSearchResultItem
+    return this.sanitizeSong(item);
   }
 
-  public static async getSongStreamByQuery(query: string) {
-    const url = this.createRequestUrl(query);
+  public static async getSongByQuery(query: string): Promise<Song> {
+    const url = this.createYoutubeVideoSearchRequestUrl(query);
 
     const { data } = await axios.get(encodeURI(url));
     const items: YoutubeVideoSearchResultItem[] = data.items;
 
-    if (items[0]) {
-      return await this.getStream(
-        `https://www.youtube.com/watch?v=${items[0].id.videoId}`
-      );
-    } else throw new Error("Youtube API did not respond");
+    if (items[0]) return this.sanitizeSong(items[0]);
+    else throw new Error("Youtube API did not respond");
   }
 
-  private static async getStream(url: string): Promise<Readable> {
+  public static async getReadable(url: string): Promise<Readable> {
     return await ytdl(url, this.options);
   }
 
-  private static createRequestUrl = (query: string, maxResults = 20) =>
+  private static sanitizeSong(item: YoutubeVideoSearchResultItem): Song {
+    return {
+      thumbnailUrl: item.snippet.thumbnails.default.url,
+      title: item.snippet.title,
+      url: item.id.videoId,
+    };
+  }
+
+  private static createYoutubeVideoSearchRequestUrl = (
+    query: string,
+    maxResults = 20
+  ) =>
     `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=${maxResults}&q=${query}&type=video&key=${process.env.YOUTUBE_API_KEY}`;
 }
