@@ -13,13 +13,11 @@ import {
 import { Readable } from "stream";
 import { Command } from "../../../types";
 import { YoutubeService } from "../../services/youtube/youtube.service";
-import {
-  MootyAudioPlayer,
-  PlayerService,
-} from "../../services/player/player.service";
+import { PlayerService } from "../../services/player/player.service";
 import { ServiceResponse } from "../../classes/service-response";
 import { DEFAULT_ERROR_MESSAGE } from "../../constants";
 import { Song } from "../../classes/song";
+import { MootyAudioPlayer } from "../../services/player/mooty-audio-player";
 
 const Play: Command = {
   data: new SlashCommandBuilder()

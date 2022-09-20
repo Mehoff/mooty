@@ -33,8 +33,10 @@ export class YoutubeService {
   public static async handleQuery(
     interaction: ChatInputCommandInteraction<CacheType>
   ): Promise<ServiceResponse<Song>> {
-    const query = interaction.options.getString("query");
+    let query = interaction.options.getString("query");
     if (!query) return new ServiceErrorResponse<Song>("Bad query, try again");
+
+    query = query.trim();
 
     try {
       const song = ytdl.validateURL(query)
