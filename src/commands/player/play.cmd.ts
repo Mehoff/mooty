@@ -75,6 +75,7 @@ const Play: Command = {
       joinVoiceChannel(connectionOptions).subscribe(mooty.player);
 
       mooty.addSong(song);
+      interaction.channel?.send("Added *" + song.title + "* to playlist");
 
       // if (mooty.current !== null)
       //   interaction.reply("Something bad happened, dev is retarded");
@@ -105,6 +106,7 @@ const Play: Command = {
         return await interaction.reply("Member is not in a voice channel");
 
       mooty.addSong(song);
+      interaction.channel?.send("Added " + song.title + "to playlist");
 
       // const connectionOptions: JoinVoiceChannelOptions &
       //   CreateVoiceConnectionOptions = {
@@ -122,7 +124,7 @@ const Play: Command = {
       // mooty.player.play(resource);
     }
 
-    await interaction.reply("Track is playing");
+    await interaction.reply("Track is added");
   },
 };
 

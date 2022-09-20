@@ -49,6 +49,7 @@ export class MootyAudioPlayer {
 
   addSong(song: Song) {
     this.queue.push(song);
+    this.onAddToQueue();
   }
 }
 
