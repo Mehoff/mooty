@@ -75,4 +75,10 @@ export class MootyAudioPlayer {
     this.queue.push(song);
     this.onAddToQueue();
   }
+
+  skip() {
+    this.current = undefined;
+    this.player.stop();
+    this.onSongEnd();
+  }
 }
