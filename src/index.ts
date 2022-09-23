@@ -1,17 +1,22 @@
-import { Client } from "discord.js";
-import { CommandsHandler } from "./commands-handler";
 import dotenv from "dotenv";
+import path from "path";
+import { Client } from "discord.js";
 import { GatewayIntentBits } from "discord-api-types/v9";
+import { CommandsHandler } from "../commands-handler";
 dotenv.config();
 
-export const commandsHandler = new CommandsHandler();
+const commandsHandler = new CommandsHandler(path.join(__dirname, "commands"));
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildVoiceStates,
+  ],
 });
 
 client.once("ready", async () => {
-  await commandsHandler.init();
+  await commandsHandler.loadCommands();
   console.log(`Beep-bop, I am ready!`);
 });
 
@@ -21,3 +26,6 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
+// Map (guildId, AudioPlayer)
+// On interaction, find AudioPlayer by guildId and perform action

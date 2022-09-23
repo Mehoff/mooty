@@ -6,16 +6,23 @@
   "scripts": {
     "start": "npx ts-node ./src/index.ts",
     "dev": "npx nodemon ./src/index.ts",
-    "dep": "npx ts-node ./deploy-commands.ts"
+    "dep": "npx ts-node ./deploy-commands.ts",
+    "dep-glob": "npx ts-node ./deploy-commands-globally.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/opus": "^0.8.0",
     "@discordjs/rest": "^0.5.0",
+    "@discordjs/voice": "^0.11.0",
+    "axios": "^0.27.2",
     "discord-api-types": "^0.34.0",
     "discord.js": "^14.3.0",
-    "dotenv": "^16.0.1"
+    "dotenv": "^16.0.1",
+    "ffmpeg-static": "^5.1.0",
+    "sodium-native": "^3.4.1",
+    "ytdl-core": "^4.11.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.16",
