@@ -6,7 +6,8 @@
   "scripts": {
     "start": "npx ts-node ./src/index.ts",
     "dev": "npx nodemon ./src/index.ts",
-    "dep": "npx ts-node ./deploy-commands.ts"
+    "dep": "npx ts-node ./deploy-commands.ts",
+    "dep-glob": "npx ts-node ./deploy-commands-globally.ts"
   },
   "keywords": [],
   "author": "",

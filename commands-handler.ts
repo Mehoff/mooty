@@ -25,7 +25,7 @@ export class CommandsHandler {
   /**
    * Deploy commands to discord guild
    */
-  async deployCommands() {
+  async deployCommands(options: { global: boolean }) {
     console.log("Deploy commands...");
 
     if (!fs.existsSync(this.commandsFolderPath))
@@ -50,10 +50,12 @@ export class CommandsHandler {
 
     rest
       .put(
-        Routes.applicationGuildCommands(
-          `${process.env.CLIENT_ID}`,
-          `${process.env.GUILD_ID}`
-        ),
+        global
+          ? Routes.applicationCommands(`${process.env.CLIENT_ID}`)
+          : Routes.applicationGuildCommands(
+              `${process.env.CLIENT_ID}`,
+              `${process.env.GUILD_ID}`
+            ),
         { body: this.commandsJSON }
       )
       .then(() => console.log("Successfully registered application commands."))
