@@ -20,25 +20,25 @@ export class MootyAudioPlayer {
     this.current = undefined;
 
     this.player.on(AudioPlayerStatus.Buffering, (err) => {
-      interaction.channel?.send("Buffering");
+      // interaction.channel?.send("Buffering");
     });
 
     this.player.on(AudioPlayerStatus.Idle, (err) => {
-      interaction.channel?.send("Idle");
+      // interaction.channel?.send("Idle");
 
       this.onSongEnd();
     });
 
     this.player.on(AudioPlayerStatus.Paused, (err) => {
-      interaction.channel?.send("Paused");
+      // interaction.channel?.send("Paused");
     });
 
     this.player.on(AudioPlayerStatus.Playing, (oldState, newState) => {
-      interaction.channel?.send("Playing");
+      // interaction.channel?.send("Playing");
     });
 
     this.player.on("error", (err) => {
-      console.log("Player error: ");
+      // console.log("Player error: ");
       console.error(err);
     });
   }
