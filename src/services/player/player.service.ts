@@ -23,9 +23,6 @@ export class PlayerService {
     return exists;
   }
 
-  static createPlayer(
-    interaction: ChatInputCommandInteraction<CacheType>
-  ): MootyAudioPlayer {
-    return new MootyAudioPlayer(interaction);
-  }
+  static createPlayer = (interaction: ChatInputCommandInteraction<CacheType>) =>
+    new MootyAudioPlayer(interaction);
 }

@@ -1,19 +1,14 @@
 import {
   joinVoiceChannel,
-  createAudioResource,
   CreateVoiceConnectionOptions,
   JoinVoiceChannelOptions,
   getVoiceConnection,
 } from "@discordjs/voice";
 import {
-  APIEmbedField,
   CacheType,
   ChatInputCommandInteraction,
-  EmbedBuilder,
-  RestOrArray,
   SlashCommandBuilder,
 } from "discord.js";
-import { Readable } from "stream";
 import { Command } from "../../../types";
 import { YoutubeService } from "../../services/youtube/youtube.service";
 import { PlayerService } from "../../services/player/player.service";
@@ -54,6 +49,7 @@ const Play: Command = {
 
     // If no error, data is a Song info
     const song: Song = data!;
+    song.requestedBy = member.user.username;
 
     // Check if bot connected to a voice channel
     const connection = getVoiceConnection(interaction.guildId!);
@@ -77,17 +73,7 @@ const Play: Command = {
     }
 
     // Add song to queue
-    mooty.addSong(song);
-
-    // Send a successful reply message
-    const embed = new EmbedBuilder()
-      .setColor(0x0099ff)
-      .setTitle(song.title)
-      .setURL(song.url)
-      .setFooter({ text: `Requested by ${interaction.member?.user.username!}` })
-      .setThumbnail(song.thumbnailUrl)
-      .setTimestamp(); // TODO: Add song.uploadDate
-
+    const embed = await mooty.addSong(song);
     return await interaction.reply({ embeds: [embed] });
   },
 };
