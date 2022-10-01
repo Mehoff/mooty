@@ -64,6 +64,35 @@ export class EmbedGenerator {
       .setTimestamp();
   }
 
+  public getCurrentSongEmbed(mooty: MootyAudioPlayer): EmbedBuilder {
+    if (!mooty.current)
+      return new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle("There is total silence, no song is being played")
+        .setTimestamp();
+
+    return new EmbedBuilder()
+      .setTitle(`Currently playing __**${mooty.current.title}**__`)
+      .addFields([
+        {
+          name: "Source link:",
+          value: `[Link](${mooty.current.url})`,
+          inline: true,
+        },
+        {
+          name: "Next up:",
+          value: `${mooty.queue.length ? mooty.queue[0].title : "None"}`,
+          inline: true,
+        },
+      ])
+      .setFooter({
+        text: `Requested by ${mooty.current.requestedBy?.user.username!}`,
+        iconURL: mooty.current.requestedBy?.user.avatarURL({ size: 64 })!,
+      })
+      .setThumbnail(mooty.current.thumbnailUrl)
+      .setTimestamp();
+  }
+
   public getQueueFinishedEmbed(mooty: MootyAudioPlayer): EmbedBuilder {
     return new EmbedBuilder()
       .setColor(0x0099ff)
