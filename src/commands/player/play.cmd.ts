@@ -49,7 +49,7 @@ const Play: Command = {
 
     // If no error, data is a Song info
     const song: Song = data!;
-    song.requestedBy = member.user.username;
+    song.requestedBy = member;
 
     // Check if bot connected to a voice channel
     const connection = getVoiceConnection(interaction.guildId!);

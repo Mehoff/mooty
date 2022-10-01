@@ -33,3 +33,7 @@ Flow of player:
 - Create embed-messages service class, which will handle creation of emebeds based on MootyPlayer context and request
 - On `skip` if `queue.length` is 0 - disconnect from channel, send specified message, destroy player.
 - Add small avatar on embed message
+
+## /current
+
+- Shows current song that is being played

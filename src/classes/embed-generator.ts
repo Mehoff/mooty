@@ -19,14 +19,17 @@ export class EmbedGenerator {
       .setColor(0x0099ff)
       .setTitle(`Added __**${song.title}**__ to the queue`)
       .addFields([
-        { name: "Source link:", value: `[Link](${song.url})` },
+        { name: "Source link:", value: `[Link](${song.url})`, inline: true },
         {
-          name: "Songs in queue",
-          value: `${mooty.queue.length ? mooty.queue.length : "None"}`,
+          name: "Next up:",
+          value: `${mooty.queue.length ? mooty.queue[0].title : "None"}`,
           inline: true,
         },
       ])
-      .setFooter({ text: `Requested by ${song.requestedBy}` })
+      .setFooter({
+        text: `Requested by ${song.requestedBy?.user.username}`,
+        iconURL: song.requestedBy?.user.avatarURL({ size: 64 })!,
+      })
       .setThumbnail(song.thumbnailUrl)
       .setTimestamp();
   }
@@ -42,15 +45,21 @@ export class EmbedGenerator {
       .setColor(0x0099ff)
       .setTitle(`Next playing __**${mooty.current.title}**__`)
       .addFields([
-        { name: "Source link:", value: `[Link](${mooty.current.url})` },
         {
-          name: "Songs in queue: (/queue to list)",
-          value: `${mooty.queue.length ? mooty.queue.length : "None"}`,
+          name: "Source link:",
+          value: `[Link](${mooty.current.url})`,
+          inline: true,
+        },
+        {
+          name: "Next up:",
+          value: `${mooty.queue.length ? mooty.queue[0].title : "None"}`,
           inline: true,
         },
       ])
-      .setURL(mooty.current.url)
-      .setFooter({ text: `Requested by ${mooty.current.requestedBy}` })
+      .setFooter({
+        text: `Requested by ${mooty.current.requestedBy?.user.username!}`,
+        iconURL: mooty.current.requestedBy?.user.avatarURL({ size: 64 })!,
+      })
       .setThumbnail(mooty.current.thumbnailUrl)
       .setTimestamp();
   }

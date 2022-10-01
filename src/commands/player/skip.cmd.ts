@@ -18,8 +18,6 @@ const Skip: Command = {
 
     const mooty = PlayerService.createOrGetExistingPlayer(interaction);
     mooty.skip();
-
-    interaction.reply("Skipped current song");
   },
 };
 
