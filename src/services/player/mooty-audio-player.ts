@@ -15,6 +15,7 @@ import {
 import { EmbedGenerator } from "../../classes/embed-generator";
 import { Song } from "../../classes/song";
 import { YoutubeService } from "../youtube/youtube.service";
+import { PlayerService } from "./player.service";
 
 export class MootyAudioPlayer {
   public player: AudioPlayer;
@@ -84,6 +85,8 @@ export class MootyAudioPlayer {
     this.player.stop();
     const connection = getVoiceConnection(this.guild.id);
     await connection?.disconnect();
+
+    PlayerService.deletePlayer(this);
   }
 
   async addSong(song: Song): Promise<EmbedBuilder> {
@@ -95,5 +98,11 @@ export class MootyAudioPlayer {
   skip() {
     this.current = undefined;
     this.player.stop();
+  }
+
+  print() {
+    // On queue finish - remove from playersMap
+    // Delete Mooty object
+    console.log(this);
   }
 }
