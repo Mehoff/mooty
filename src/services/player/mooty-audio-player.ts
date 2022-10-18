@@ -83,6 +83,7 @@ export class MootyAudioPlayer {
   }
 
   async onQueueFinished() {
+    console.log("onQueueFinished");
     await this.channel.send({
       embeds: [this.embedGenerator.getQueueFinishedEmbed(this)],
     });
