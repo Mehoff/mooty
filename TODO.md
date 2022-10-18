@@ -38,9 +38,15 @@ Flow of player:
 
 - Shows current song that is being played
 
-## Disconnect on queue end
+## Disconnect on queue end 18/10/22
 
 - Disconnect when there is no song to be played for this channel [X]
 - Ensure all settings are set to defaults (in case we will try to play next song after disconnect) [X] (Just delete Mooty object)
 - Fix "The application did not respond" response on `/skip` on last song [X]
 - Fix double 'Queue is finished' message [X]
+
+## Radio
+
+- `/radio` [(optional) link/queue]
+- If `/radio` without parameters: If `current === undefined` => Error, can't start radio without context. If `current` not `undefined`, next track (if nothing in queue) will be from radio
+- If `/radio` with parameters - next track (after queue) will be by passed query data
