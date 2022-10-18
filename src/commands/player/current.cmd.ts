@@ -7,18 +7,21 @@ import {
 import { Command } from "../../../types";
 import { PlayerService } from "../../services/player/player.service";
 
-const Skip: Command = {
+const Current: Command = {
   data: new SlashCommandBuilder()
-    .setName("skip")
-    .setDescription("Skips current played song"),
+    .setName("current")
+    .setDescription("Shows info about currently playing song"),
   execute: async (interaction: ChatInputCommandInteraction<CacheType>) => {
     const connection = getVoiceConnection(interaction.guildId!);
     if (!connection)
       return await interaction.reply("No voice connection detected");
 
     const mooty = PlayerService.createOrGetExistingPlayer(interaction);
-    mooty.skip();
+
+    await interaction.reply({
+      embeds: [mooty.embedGenerator.getCurrentSongEmbed(mooty)],
+    });
   },
 };
 
-export default Skip;
+export default Current;

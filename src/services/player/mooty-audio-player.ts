@@ -4,7 +4,13 @@ import {
   AudioPlayerStatus,
   createAudioResource,
 } from "@discordjs/voice";
-import { ChatInputCommandInteraction, CacheType } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  CacheType,
+  EmbedBuilder,
+  TextBasedChannel,
+} from "discord.js";
+import { EmbedGenerator } from "../../classes/embed-generator";
 import { Song } from "../../classes/song";
 import { YoutubeService } from "../youtube/youtube.service";
 
@@ -12,11 +18,14 @@ export class MootyAudioPlayer {
   public player: AudioPlayer;
   public queue: Song[];
   public current: Song | undefined;
+  public embedGenerator: EmbedGenerator;
+  public channel: TextBasedChannel; // Channel that bot should send messages without interaction
 
   constructor(interaction: ChatInputCommandInteraction<CacheType>) {
     this.player = createAudioPlayer();
     this.queue = [];
     this.current = undefined;
+    this.channel = interaction.channel!;
 
     this.player.on(AudioPlayerStatus.Buffering, (err) => {});
 
@@ -31,6 +40,8 @@ export class MootyAudioPlayer {
     this.player.on("error", (err) => {
       console.error(err);
     });
+
+    this.embedGenerator = new EmbedGenerator();
   }
 
   /**
@@ -60,12 +71,29 @@ export class MootyAudioPlayer {
           await YoutubeService.getReadable(this.current?.url!)
         )
       );
+
+      await this.channel.send({
+        embeds: [this.embedGenerator.getNextSongPlayingEmbed(this)],
+      });
+
+      return;
     }
+
+    await this.onQueueFinished();
   }
 
-  addSong(song: Song) {
+  async onQueueFinished() {
+    await this.channel.send({
+      embeds: [this.embedGenerator.getQueueFinishedEmbed(this)],
+    });
+
+    this.player.stop();
+  }
+
+  async addSong(song: Song): Promise<EmbedBuilder> {
     this.queue.push(song);
-    this.onAddToQueue();
+    await this.onAddToQueue();
+    return this.embedGenerator.getSongAddedToQueueEmbed(this);
   }
 
   skip() {
