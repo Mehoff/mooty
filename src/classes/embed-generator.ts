@@ -1,4 +1,4 @@
-import { EmbedBuilder } from "discord.js";
+import { APIEmbedField, EmbedBuilder } from "discord.js";
 import { MootyAudioPlayer } from "../services/player/mooty-audio-player";
 
 const EMBED_COLOR = 0x0099ff;
@@ -15,19 +15,26 @@ export class EmbedGenerator {
         .setTitle(`Added song to the queue`)
         .setTimestamp();
 
+    const fields: APIEmbedField[] = [
+      { name: "Source link:", value: `[Link](${song.url})`, inline: true },
+      {
+        name: "⏭️ Next up:",
+        value: `${mooty.isQueueEmpty() ? "None" : mooty.getQueueFront().title}`,
+        inline: true,
+      },
+    ];
+
+    if (mooty.isPaused())
+      fields.push({
+        name: "Player is paused!😒",
+        value: "Use **/resume** to un-pause player 🎶",
+        inline: false,
+      });
+
     return new EmbedBuilder()
       .setColor(EMBED_COLOR)
       .setTitle(`Added __**${song.title}**__ to the queue`)
-      .addFields([
-        { name: "Source link:", value: `[Link](${song.url})`, inline: true },
-        {
-          name: "Next up:",
-          value: `${
-            mooty.isQueueEmpty() ? "None" : mooty.getQueueFront().title
-          }`,
-          inline: true,
-        },
-      ])
+      .addFields(fields)
       .setFooter({
         text: `Requested by ${song.requestedBy?.user.username}`,
         iconURL: song.requestedBy?.user.avatarURL({ size: 64 })!,
@@ -55,7 +62,7 @@ export class EmbedGenerator {
           inline: true,
         },
         {
-          name: "Next up:",
+          name: "⏭️ Next up:",
           value: `${
             mooty.isQueueEmpty() ? "None" : mooty.getQueueFront().title
           }`,
@@ -88,7 +95,7 @@ export class EmbedGenerator {
           inline: true,
         },
         {
-          name: "Next up:",
+          name: "⏭️ Next up:",
           value: `${
             mooty.isQueueEmpty() ? "None" : mooty.getQueueFront().title
           }`,
@@ -101,6 +108,13 @@ export class EmbedGenerator {
       })
       .setThumbnail(song.thumbnailUrl!)
       .setTimestamp();
+  }
+
+  public buildMessageEmbed(title: string, description: string = "") {
+    const embed = new EmbedBuilder().setColor(EMBED_COLOR).setTitle(title);
+
+    if (description) embed.setDescription(description);
+    return embed;
   }
 
   public getQueueFinishedEmbed(): EmbedBuilder {

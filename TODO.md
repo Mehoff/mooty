@@ -50,3 +50,18 @@ Flow of player:
 - `/radio` [(optional) link/queue]
 - If `/radio` without parameters: If `current === undefined` => Error, can't start radio without context. If `current` not `undefined`, next track (if nothing in queue) will be from radio
 - If `/radio` with parameters - next track (after queue) will be by passed query data
+
+## Pause/Resume
+
+- Add `delete` with timeout to eph-al messages
+- Remind user that player is paused, if he uses `/play` command on while `player` is `paused`
+
+## Shuffle
+
+- Add `/shuffle` to shuffle (oh rly?) songs in queue
+
+## MongoDB _/play_ story
+
+- /story (Get last 10 songs played)
+- /story [page: int] (skip `10 * page` items)
+- Store yt-vid-id, timestamp, title
