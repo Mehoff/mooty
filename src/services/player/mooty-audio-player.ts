@@ -3,12 +3,14 @@ import {
   createAudioPlayer,
   AudioPlayerStatus,
   createAudioResource,
+  getVoiceConnection,
 } from "@discordjs/voice";
 import {
   ChatInputCommandInteraction,
   CacheType,
   EmbedBuilder,
   TextBasedChannel,
+  Guild,
 } from "discord.js";
 import { EmbedGenerator } from "../../classes/embed-generator";
 import { Song } from "../../classes/song";
@@ -20,26 +22,18 @@ export class MootyAudioPlayer {
   public current: Song | undefined;
   public embedGenerator: EmbedGenerator;
   public channel: TextBasedChannel; // Channel that bot should send messages without interaction
+  public guild: Guild;
+  // Should we store current guild?
 
   constructor(interaction: ChatInputCommandInteraction<CacheType>) {
     this.player = createAudioPlayer();
     this.queue = [];
     this.current = undefined;
     this.channel = interaction.channel!;
+    this.guild = interaction.guild!;
 
-    this.player.on(AudioPlayerStatus.Buffering, (err) => {});
-
-    this.player.on(AudioPlayerStatus.Idle, (err) => {
-      this.onSongEnd();
-    });
-
-    this.player.on(AudioPlayerStatus.Paused, (err) => {});
-
-    this.player.on(AudioPlayerStatus.Playing, (oldState, newState) => {});
-
-    this.player.on("error", (err) => {
-      console.error(err);
-    });
+    this.player.on(AudioPlayerStatus.Idle, (err) => this.onSongEnd());
+    this.player.on("error", (err) => console.error(err));
 
     this.embedGenerator = new EmbedGenerator();
   }
@@ -62,7 +56,9 @@ export class MootyAudioPlayer {
   }
 
   async onSongEnd() {
+    // While we are skipping the song, lets ensure that we are not playing anything
     this.current = undefined;
+
     // Check if queue has any more songs
     if (this.queue.length > 0) {
       this.current = this.queue.pop();
@@ -75,11 +71,9 @@ export class MootyAudioPlayer {
       await this.channel.send({
         embeds: [this.embedGenerator.getNextSongPlayingEmbed(this)],
       });
-
-      return;
+    } else {
+      await this.onQueueFinished();
     }
-
-    await this.onQueueFinished();
   }
 
   async onQueueFinished() {
@@ -88,6 +82,8 @@ export class MootyAudioPlayer {
     });
 
     this.player.stop();
+    const connection = getVoiceConnection(this.guild.id);
+    await connection?.disconnect();
   }
 
   async addSong(song: Song): Promise<EmbedBuilder> {
@@ -99,6 +95,5 @@ export class MootyAudioPlayer {
   skip() {
     this.current = undefined;
     this.player.stop();
-    this.onSongEnd();
   }
 }
