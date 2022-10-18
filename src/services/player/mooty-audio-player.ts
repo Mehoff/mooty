@@ -19,25 +19,50 @@ import { YoutubeService } from "../youtube/youtube.service";
 import { PlayerService } from "./player.service";
 
 export class MootyAudioPlayer {
-  private current: Song | undefined;
-  private queue: Song[];
-  private player: AudioPlayer;
-  private channel: TextBasedChannel;
-  private guild: Guild;
+  private _current: Song | undefined;
+  private _queue: Song[];
+  private _player: AudioPlayer;
+  private _channel: TextBasedChannel;
+  private _guild: Guild;
+  private _isPaused: boolean;
 
   public embedGenerator: EmbedGenerator;
 
   constructor(interaction: ChatInputCommandInteraction<CacheType>) {
-    this.player = createAudioPlayer();
-    this.queue = [];
-    this.current = undefined;
+    this._player = createAudioPlayer();
+    this._queue = [];
+    this._current = undefined;
+    this._isPaused = true;
 
     // Is this ok to ignore "Possibly undefined" warning here?
-    this.channel = interaction.channel!;
-    this.guild = interaction.guild!;
+    this._channel = interaction.channel!;
+    this._guild = interaction.guild!;
 
-    this.player.on(AudioPlayerStatus.Idle, (err) => this._onSongEnd());
-    this.player.on("error", (err: AudioPlayerError) => {
+    this._player.on("stateChange", async (oldState, newState) => {
+      if (
+        oldState.status === AudioPlayerStatus.Playing &&
+        newState.status === AudioPlayerStatus.Paused
+      ) {
+        this._channel
+          .send({
+            embeds: [this.embedGenerator.buildMessageEmbed("Song is paused")],
+          })
+          .then((msg) => setTimeout(() => msg.delete(), 3500));
+      }
+
+      if (
+        oldState.status === AudioPlayerStatus.Paused &&
+        newState.status === AudioPlayerStatus.Playing
+      ) {
+        this._channel
+          .send({
+            embeds: [this.embedGenerator.buildMessageEmbed("Song is resumed")],
+          })
+          .then((msg) => setTimeout(() => msg.delete(), 3500));
+      }
+    });
+    this._player.on(AudioPlayerStatus.Idle, (err) => this._onSongEnd());
+    this._player.on("error", (err: AudioPlayerError) => {
       // TODO: Handle 410 Error here;
       console.error(err);
     });
@@ -47,35 +72,41 @@ export class MootyAudioPlayer {
 
   // get-set:
 
-  private _setCurrent = (value: Song | undefined) => (this.current = value);
+  private _setPaused = (value: boolean) => (this._isPaused = value);
+  public isPaused = () => this._isPaused;
+
+  private _setCurrent = (value: Song | undefined) => {
+    this._setPaused(value ? false : true); // Probably not good
+    this._current = value;
+  };
 
   /**
    *
    * @returns Currently played song
    */
-  public getCurrent = (): Song | undefined => this.current;
+  public getCurrent = (): Song | undefined => this._current;
 
   /**
    *
    * @returns Discord audio player
    */
-  public getPlayer = (): AudioPlayer => this.player;
+  public getPlayer = (): AudioPlayer => this._player;
 
   // private:
 
   private async _play(url: string) {
-    this.player.play(
+    this._player.play(
       createAudioResource(await YoutubeService.getReadable(url))
     );
   }
 
   private async _addToQueue(song: Song) {
-    this.queue.push(song);
+    this._queue.push(song);
     await this._onAddToQueue();
   }
 
   private async _disconnect() {
-    const connection = getVoiceConnection(this.guild.id);
+    const connection = getVoiceConnection(this._guild.id);
     await connection?.disconnect();
   }
 
@@ -84,8 +115,8 @@ export class MootyAudioPlayer {
    */
   private async _onAddToQueue() {
     if (!this.getCurrent()) {
-      if (this.queue.length > 0) {
-        this._setCurrent(this.queue.pop());
+      if (this._queue.length > 0) {
+        this._setCurrent(this._queue.pop());
         this._play(this.getCurrent()?.url!);
       }
     }
@@ -96,11 +127,11 @@ export class MootyAudioPlayer {
     this._setCurrent(undefined);
 
     // Check if queue has any more songs
-    if (this.queue.length > 0) {
-      this._setCurrent(this.queue.pop());
+    if (this._queue.length > 0) {
+      this._setCurrent(this._queue.pop());
       this._play(this.getCurrent()?.url!);
 
-      await this.channel.send({
+      await this._channel.send({
         embeds: [this.embedGenerator.getNextSongPlayingEmbed(this)],
       });
     } else {
@@ -109,14 +140,14 @@ export class MootyAudioPlayer {
   }
 
   private async _onQueueFinish() {
-    await this.channel.send({
+    await this._channel.send({
       embeds: [this.embedGenerator.getQueueFinishedEmbed()],
     });
 
-    this.player.stop();
+    this._player.stop();
 
     await this._disconnect();
-    PlayerService.deletePlayer(this.guild);
+    PlayerService.deletePlayer(this._guild);
   }
 
   // public:
@@ -136,23 +167,33 @@ export class MootyAudioPlayer {
    */
   public skip() {
     this._setCurrent(undefined);
-    this.player.stop();
+    this._player.stop();
   }
 
-  public isQueueEmpty = () => !(this.queue.length > 0);
+  public pause() {
+    this._setPaused(true);
+    this._player.pause();
+  }
+
+  public resume() {
+    this._setPaused(false);
+    this._player.unpause();
+  }
+
+  public isQueueEmpty = () => !(this._queue.length > 0);
 
   public getFromQueueByIndex(index: number): Song {
-    if (index > this.queue.length - 1 || index < 0)
+    if (index > this._queue.length - 1 || index < 0)
       throw new RangeError("Queue index is out of range");
 
-    return this.queue[index];
+    return this._queue[index];
   }
 
   public getQueueLast(): Song {
-    return this.queue[this.queue.length - 1];
+    return this._queue[this._queue.length - 1];
   }
 
   public getQueueFront(): Song {
-    return this.queue[0];
+    return this._queue[0];
   }
 }
