@@ -69,7 +69,7 @@ const Play: Command = {
       };
 
       // Join to voice channel and subscribe to player
-      joinVoiceChannel(connectionOptions).subscribe(mooty.player);
+      joinVoiceChannel(connectionOptions).subscribe(mooty.getPlayer());
     }
 
     // Add song to queue

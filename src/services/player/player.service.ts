@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, CacheType } from "discord.js";
+import { ChatInputCommandInteraction, CacheType, Guild } from "discord.js";
 import { MootyAudioPlayer } from "./mooty-audio-player";
 
 export class PlayerService {
@@ -26,16 +26,16 @@ export class PlayerService {
   static createPlayer = (interaction: ChatInputCommandInteraction<CacheType>) =>
     new MootyAudioPlayer(interaction);
 
-  static deletePlayer(mooty: MootyAudioPlayer) {
-    const exists = this.playersMap.get(mooty.guild.id);
+  static deletePlayer(guild: Guild) {
+    const exists = this.playersMap.get(guild.id);
 
     if (!exists) {
       console.error(
-        `Failed to delete player: Player with specified guild id (${mooty.guild.id}) does not exist on playerMap`
+        `Failed to delete player: Player with specified guild id (${guild.id}) does not exist on playerMap`
       );
       return;
     }
 
-    PlayerService.playersMap.delete(mooty.guild.id);
+    PlayerService.playersMap.delete(guild.id);
   }
 }

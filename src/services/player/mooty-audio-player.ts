@@ -4,6 +4,7 @@ import {
   AudioPlayerStatus,
   createAudioResource,
   getVoiceConnection,
+  AudioPlayerError,
 } from "@discordjs/voice";
 import {
   ChatInputCommandInteraction,
@@ -18,91 +19,140 @@ import { YoutubeService } from "../youtube/youtube.service";
 import { PlayerService } from "./player.service";
 
 export class MootyAudioPlayer {
-  public player: AudioPlayer;
-  public queue: Song[];
-  public current: Song | undefined;
+  private current: Song | undefined;
+  private queue: Song[];
+  private player: AudioPlayer;
+  private channel: TextBasedChannel;
+  private guild: Guild;
+
   public embedGenerator: EmbedGenerator;
-  public channel: TextBasedChannel; // Channel that bot should send messages without interaction
-  public guild: Guild;
-  // Should we store current guild?
 
   constructor(interaction: ChatInputCommandInteraction<CacheType>) {
     this.player = createAudioPlayer();
     this.queue = [];
     this.current = undefined;
+
+    // Is this ok to ignore "Possibly undefined" warning here?
     this.channel = interaction.channel!;
     this.guild = interaction.guild!;
 
-    this.player.on(AudioPlayerStatus.Idle, (err) => this.onSongEnd());
-    this.player.on("error", (err) => console.error(err));
+    this.player.on(AudioPlayerStatus.Idle, (err) => this._onSongEnd());
+    this.player.on("error", (err: AudioPlayerError) => {
+      // TODO: Handle 410 Error here;
+      console.error(err);
+    });
 
     this.embedGenerator = new EmbedGenerator();
+  }
+
+  // get-set:
+
+  private _setCurrent = (value: Song | undefined) => (this.current = value);
+
+  /**
+   *
+   * @returns Currently played song
+   */
+  public getCurrent = (): Song | undefined => this.current;
+
+  /**
+   *
+   * @returns Discord audio player
+   */
+  public getPlayer = (): AudioPlayer => this.player;
+
+  // private:
+
+  private async _play(url: string) {
+    this.player.play(
+      createAudioResource(await YoutubeService.getReadable(url))
+    );
+  }
+
+  private async _addToQueue(song: Song) {
+    this.queue.push(song);
+    await this._onAddToQueue();
+  }
+
+  private async _disconnect() {
+    const connection = getVoiceConnection(this.guild.id);
+    await connection?.disconnect();
   }
 
   /**
    * Triggers after new song was added to the queue
    */
-  async onAddToQueue() {
-    // Remember to set current to `undefined` on queue finish
-    if (!this.current) {
+  private async _onAddToQueue() {
+    if (!this.getCurrent()) {
       if (this.queue.length > 0) {
-        this.current = this.queue.pop();
-        this.player.play(
-          createAudioResource(
-            await YoutubeService.getReadable(this.current?.url!)
-          )
-        );
+        this._setCurrent(this.queue.pop());
+        this._play(this.getCurrent()?.url!);
       }
     }
   }
 
-  async onSongEnd() {
+  private async _onSongEnd() {
     // While we are skipping the song, lets ensure that we are not playing anything
-    this.current = undefined;
+    this._setCurrent(undefined);
 
     // Check if queue has any more songs
     if (this.queue.length > 0) {
-      this.current = this.queue.pop();
-      this.player.play(
-        createAudioResource(
-          await YoutubeService.getReadable(this.current?.url!)
-        )
-      );
+      this._setCurrent(this.queue.pop());
+      this._play(this.getCurrent()?.url!);
 
       await this.channel.send({
         embeds: [this.embedGenerator.getNextSongPlayingEmbed(this)],
       });
     } else {
-      await this.onQueueFinished();
+      await this._onQueueFinish();
     }
   }
 
-  async onQueueFinished() {
+  private async _onQueueFinish() {
     await this.channel.send({
-      embeds: [this.embedGenerator.getQueueFinishedEmbed(this)],
+      embeds: [this.embedGenerator.getQueueFinishedEmbed()],
     });
 
     this.player.stop();
-    const connection = getVoiceConnection(this.guild.id);
-    await connection?.disconnect();
 
-    PlayerService.deletePlayer(this);
+    await this._disconnect();
+    PlayerService.deletePlayer(this.guild);
   }
 
-  async addSong(song: Song): Promise<EmbedBuilder> {
-    this.queue.push(song);
-    await this.onAddToQueue();
+  // public:
+
+  /**
+   *
+   * @param song Song to add
+   * @returns Embeded discord message
+   */
+  public async addSong(song: Song): Promise<EmbedBuilder> {
+    this._addToQueue(song);
     return this.embedGenerator.getSongAddedToQueueEmbed(this);
   }
 
-  skip() {
-    this.current = undefined;
+  /**
+   * Skips currently played song
+   */
+  public skip() {
+    this._setCurrent(undefined);
     this.player.stop();
   }
 
-  print() {
-    // On queue finish - remove from playersMap
-    // Delete Mooty object
-    console.log(this);
+  public isQueueEmpty = () => !(this.queue.length > 0);
+
+  public getFromQueueByIndex(index: number): Song {
+    if (index > this.queue.length - 1 || index < 0)
+      throw new RangeError("Queue index is out of range");
+
+    return this.queue[index];
+  }
+
+  public getQueueLast(): Song {
+    return this.queue[this.queue.length - 1];
+  }
+
+  public getQueueFront(): Song {
+    return this.queue[0];
   }
 }

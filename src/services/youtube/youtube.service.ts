@@ -12,10 +12,6 @@ import {
 } from "../../classes/service-response";
 import { Song } from "../../classes/song";
 
-// Refactoring
-//    Youtube Service handle functions should return 'Song' objects, to visually display them in messages
-//    Also it must have a separate function (getReadable) which takes 'Song' as a param and returns readable
-
 export interface YoutubeVideoGetByURLItem {
   kind: string;
   etag: string;
