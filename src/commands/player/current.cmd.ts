@@ -5,6 +5,7 @@ import {
   CacheType,
 } from "discord.js";
 import { Command } from "../../../types";
+import { EmbedGenerator } from "../../classes/embed-generator";
 import { PlayerService } from "../../services/player/player.service";
 
 const Current: Command = {
@@ -19,7 +20,7 @@ const Current: Command = {
     const mooty = PlayerService.createOrGetExistingPlayer(interaction);
 
     await interaction.reply({
-      embeds: [mooty.embedGenerator.getCurrentSongEmbed(mooty)],
+      embeds: [EmbedGenerator.getCurrentSongEmbed(mooty)],
     });
   },
 };

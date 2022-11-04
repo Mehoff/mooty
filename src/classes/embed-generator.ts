@@ -4,7 +4,9 @@ import { MootyAudioPlayer } from "../services/player/mooty-audio-player";
 const EMBED_COLOR = 0x0099ff;
 
 export class EmbedGenerator {
-  public getSongAddedToQueueEmbed(mooty: MootyAudioPlayer): EmbedBuilder {
+  public static getSongAddedToQueueEmbed(
+    mooty: MootyAudioPlayer
+  ): EmbedBuilder {
     const song = mooty.isQueueEmpty()
       ? mooty.getCurrent()
       : mooty.getQueueLast();
@@ -43,7 +45,7 @@ export class EmbedGenerator {
       .setTimestamp();
   }
 
-  public getNextSongPlayingEmbed(mooty: MootyAudioPlayer): EmbedBuilder {
+  public static getNextSongPlayingEmbed(mooty: MootyAudioPlayer): EmbedBuilder {
     const current = mooty.getCurrent();
 
     if (!current)
@@ -77,7 +79,7 @@ export class EmbedGenerator {
       .setTimestamp();
   }
 
-  public getCurrentSongEmbed(mooty: MootyAudioPlayer): EmbedBuilder {
+  public static getCurrentSongEmbed(mooty: MootyAudioPlayer): EmbedBuilder {
     const song = mooty.getCurrent();
 
     if (!song)
@@ -110,14 +112,14 @@ export class EmbedGenerator {
       .setTimestamp();
   }
 
-  public buildMessageEmbed(title: string, description: string = "") {
+  public static buildMessageEmbed(title: string, description: string = "") {
     const embed = new EmbedBuilder().setColor(EMBED_COLOR).setTitle(title);
 
     if (description) embed.setDescription(description);
     return embed;
   }
 
-  public getQueueFinishedEmbed(): EmbedBuilder {
+  public static getQueueFinishedEmbed(): EmbedBuilder {
     return new EmbedBuilder()
       .setColor(EMBED_COLOR)
       .setTitle("Queue is finished")

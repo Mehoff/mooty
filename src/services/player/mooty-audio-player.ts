@@ -26,8 +26,6 @@ export class MootyAudioPlayer {
   private _guild: Guild;
   private _isPaused: boolean;
 
-  public embedGenerator: EmbedGenerator;
-
   constructor(interaction: ChatInputCommandInteraction<CacheType>) {
     this._player = createAudioPlayer();
     this._queue = [];
@@ -45,7 +43,7 @@ export class MootyAudioPlayer {
       ) {
         this._channel
           .send({
-            embeds: [this.embedGenerator.buildMessageEmbed("Song is paused")],
+            embeds: [EmbedGenerator.buildMessageEmbed("Song is paused")],
           })
           .then((msg) => setTimeout(() => msg.delete(), 3500));
       }
@@ -56,7 +54,7 @@ export class MootyAudioPlayer {
       ) {
         this._channel
           .send({
-            embeds: [this.embedGenerator.buildMessageEmbed("Song is resumed")],
+            embeds: [EmbedGenerator.buildMessageEmbed("Song is resumed")],
           })
           .then((msg) => setTimeout(() => msg.delete(), 3500));
       }
@@ -66,8 +64,6 @@ export class MootyAudioPlayer {
       // TODO: Handle 410 Error here;
       console.error(err);
     });
-
-    this.embedGenerator = new EmbedGenerator();
   }
 
   // get-set:
@@ -132,7 +128,7 @@ export class MootyAudioPlayer {
       this._play(this.getCurrent()?.url!);
 
       await this._channel.send({
-        embeds: [this.embedGenerator.getNextSongPlayingEmbed(this)],
+        embeds: [EmbedGenerator.getNextSongPlayingEmbed(this)],
       });
     } else {
       await this._onQueueFinish();
@@ -141,7 +137,7 @@ export class MootyAudioPlayer {
 
   private async _onQueueFinish() {
     await this._channel.send({
-      embeds: [this.embedGenerator.getQueueFinishedEmbed()],
+      embeds: [EmbedGenerator.getQueueFinishedEmbed()],
     });
 
     this._player.stop();
@@ -159,7 +155,7 @@ export class MootyAudioPlayer {
    */
   public async addSong(song: Song): Promise<EmbedBuilder> {
     this._addToQueue(song);
-    return this.embedGenerator.getSongAddedToQueueEmbed(this);
+    return EmbedGenerator.getSongAddedToQueueEmbed(this);
   }
 
   /**
