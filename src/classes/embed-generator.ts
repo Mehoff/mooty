@@ -18,12 +18,8 @@ export class EmbedGenerator {
         .setTimestamp();
 
     const fields: APIEmbedField[] = [
-      { name: "Source link:", value: `[Link](${song.url})`, inline: true },
-      {
-        name: "⏭️ Next up:",
-        value: `${mooty.isQueueEmpty() ? "None" : mooty.getQueueFront().title}`,
-        inline: true,
-      },
+      this._getInQueueField(mooty),
+      this._getNextUpField(mooty),
     ];
 
     if (mooty.isPaused())
@@ -57,20 +53,7 @@ export class EmbedGenerator {
     return new EmbedBuilder()
       .setColor(EMBED_COLOR)
       .setTitle(`Next playing __**${current.title}**__`)
-      .addFields([
-        {
-          name: "Source link:",
-          value: `[Link](${current.url})`,
-          inline: true,
-        },
-        {
-          name: "⏭️ Next up:",
-          value: `${
-            mooty.isQueueEmpty() ? "None" : mooty.getQueueFront().title
-          }`,
-          inline: true,
-        },
-      ])
+      .addFields([this._getInQueueField(mooty), this._getNextUpField(mooty)])
       .setFooter({
         text: `Requested by ${current.requestedBy?.user.username!}`,
         iconURL: current.requestedBy?.user.avatarURL({ size: 64 })!,
@@ -90,20 +73,7 @@ export class EmbedGenerator {
 
     return new EmbedBuilder()
       .setTitle(`Currently playing __**${song.title}**__`)
-      .addFields([
-        {
-          name: "Source link:",
-          value: `[Link](${song.url})`,
-          inline: true,
-        },
-        {
-          name: "⏭️ Next up:",
-          value: `${
-            mooty.isQueueEmpty() ? "None" : mooty.getQueueFront().title
-          }`,
-          inline: true,
-        },
-      ])
+      .addFields([this._getInQueueField(mooty), this._getNextUpField(mooty)])
       .setFooter({
         text: `Requested by ${song.requestedBy?.user.username!}`,
         iconURL: song.requestedBy?.user.avatarURL({ size: 64 })!,
@@ -122,7 +92,37 @@ export class EmbedGenerator {
   public static getQueueFinishedEmbed(): EmbedBuilder {
     return new EmbedBuilder()
       .setColor(EMBED_COLOR)
-      .setTitle("Queue is finished")
+      .setTitle("Queue has finished 👌")
       .setTimestamp();
   }
+
+  private static _getNextUpString = (mooty: MootyAudioPlayer): string => {
+    const next = mooty.getQueueFront();
+    if (!next) return "😶 None";
+
+    return `[${next.title}](${next.url})`;
+  };
+
+  private static _getInQueueField = (
+    mooty: MootyAudioPlayer
+  ): APIEmbedField => {
+    let value = "";
+    const length: number = mooty.getQueueLength();
+    if (length === 0) value = "No songs";
+    else value = length > 1 ? `${length} songs` : `${length} song`;
+
+    return {
+      name: "🎶 In queue",
+      value,
+      inline: true,
+    };
+  };
+
+  private static _getNextUpField = (mooty: MootyAudioPlayer): APIEmbedField => {
+    return {
+      name: "⏭️ Next up",
+      value: this._getNextUpString(mooty),
+      inline: true,
+    };
+  };
 }

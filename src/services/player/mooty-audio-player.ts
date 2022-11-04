@@ -178,6 +178,8 @@ export class MootyAudioPlayer {
 
   public isQueueEmpty = () => !(this._queue.length > 0);
 
+  public getQueueLength = () => this._queue.length;
+
   public getFromQueueByIndex(index: number): Song {
     if (index > this._queue.length - 1 || index < 0)
       throw new RangeError("Queue index is out of range");

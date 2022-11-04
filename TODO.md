@@ -67,3 +67,5 @@ Flow of player:
 - Store yt-vid-id, timestamp, title
 
 ### Refactor embed generator to be static class instead of being instantiated in every MootyPlayer instance
+
+### [BUG] Queue ordering is messed up
