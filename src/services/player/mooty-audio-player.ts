@@ -15,6 +15,7 @@ import {
 } from "discord.js";
 import { EmbedGenerator } from "../../classes/embed-generator";
 import { Song } from "../../classes/song";
+import { shuffle } from "../../helpers/shuffle";
 import { YoutubeService } from "../youtube/youtube.service";
 import { PlayerService } from "./player.service";
 
@@ -174,6 +175,14 @@ export class MootyAudioPlayer {
   public resume() {
     this._setPaused(false);
     this._player.unpause();
+  }
+
+  // return
+  public shuffle() {
+    // Send error or smth
+    if (this._queue.length < 2) return;
+
+    this._queue = shuffle(this._queue);
   }
 
   public isQueueEmpty = () => !(this._queue.length > 0);

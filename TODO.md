@@ -59,6 +59,7 @@ Flow of player:
 ### Shuffle
 
 - Add `/shuffle` to shuffle (oh rly?) songs in queue
+- If `queue.legth` < 2 => return
 
 ### MongoDB _/play_ story
 
