@@ -7,9 +7,7 @@ export class EmbedGenerator {
   public static getSongAddedToQueueEmbed(
     mooty: MootyAudioPlayer
   ): EmbedBuilder {
-    const song = mooty.isQueueEmpty()
-      ? mooty.getCurrent()
-      : mooty.getQueueLast();
+    const song = mooty.isQueueEmpty() ? mooty.current : mooty.getQueueLast();
 
     if (!song)
       return new EmbedBuilder()
@@ -22,7 +20,7 @@ export class EmbedGenerator {
       this._getNextUpField(mooty),
     ];
 
-    if (mooty.isPaused())
+    if (mooty.paused)
       fields.push({
         name: "Player is paused!😒",
         value: "Use **/resume** to un-pause player 🎶",
@@ -42,7 +40,7 @@ export class EmbedGenerator {
   }
 
   public static getNextSongPlayingEmbed(mooty: MootyAudioPlayer): EmbedBuilder {
-    const current = mooty.getCurrent();
+    const current = mooty.current;
 
     if (!current)
       return new EmbedBuilder()
@@ -63,7 +61,7 @@ export class EmbedGenerator {
   }
 
   public static getCurrentSongEmbed(mooty: MootyAudioPlayer): EmbedBuilder {
-    const song = mooty.getCurrent();
+    const song = mooty.current;
 
     if (!song)
       return new EmbedBuilder()

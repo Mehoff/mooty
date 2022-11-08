@@ -13,9 +13,8 @@ import {
   TextBasedChannel,
   Guild,
 } from "discord.js";
-import { EmbedGenerator } from "../../classes/embed-generator";
-import { Song } from "../../classes/song";
-import { shuffle } from "../../helpers/shuffle";
+import { EmbedGenerator, Song } from "../../classes";
+import { shuffle } from "../../helpers";
 import { YoutubeService } from "../youtube/youtube.service";
 import { PlayerService } from "./player.service";
 
@@ -25,28 +24,30 @@ export class MootyAudioPlayer {
   private _player: AudioPlayer;
   private _channel: TextBasedChannel;
   private _guild: Guild;
-  private _isPaused: boolean;
+  private _paused: boolean;
 
   constructor(interaction: ChatInputCommandInteraction<CacheType>) {
-    this._player = createAudioPlayer();
+    this._player = this._createAudioPlayer();
     this._queue = [];
     this._current = undefined;
-    this._isPaused = true;
+    this._paused = true;
 
     // Is this ok to ignore "Possibly undefined" warning here?
     this._channel = interaction.channel!;
     this._guild = interaction.guild!;
+  }
 
-    this._player.on("stateChange", async (oldState, newState) => {
+  private _createAudioPlayer(): AudioPlayer {
+    const player = createAudioPlayer();
+
+    player.on("stateChange", async (oldState, newState) => {
       if (
         oldState.status === AudioPlayerStatus.Playing &&
         newState.status === AudioPlayerStatus.Paused
       ) {
-        this._channel
-          .send({
-            embeds: [EmbedGenerator.buildMessageEmbed("Song is paused")],
-          })
-          .then((msg) => setTimeout(() => msg.delete(), 3500));
+        await this._channel.send({
+          embeds: [EmbedGenerator.buildMessageEmbed("Song is paused")],
+        });
       }
 
       if (
@@ -60,36 +61,35 @@ export class MootyAudioPlayer {
           .then((msg) => setTimeout(() => msg.delete(), 3500));
       }
     });
-    this._player.on(AudioPlayerStatus.Idle, (err) => this._onSongEnd());
-    this._player.on("error", (err: AudioPlayerError) => {
+    player.on(AudioPlayerStatus.Idle, (err) => this._onSongEnd());
+    player.on("error", (err: AudioPlayerError) => {
       // TODO: Handle 410 Error here;
       console.error(err);
     });
+
+    return player;
   }
 
-  // get-set:
+  public get paused() {
+    return this._paused;
+  }
 
-  private _setPaused = (value: boolean) => (this._isPaused = value);
-  public isPaused = () => this._isPaused;
+  private set paused(value: boolean) {
+    this._paused = value;
+  }
 
-  private _setCurrent = (value: Song | undefined) => {
-    this._setPaused(value ? false : true); // Probably not good
+  public get current(): Song | undefined {
+    return this._current;
+  }
+
+  private set current(value: Song | undefined) {
+    this.paused = !value;
     this._current = value;
-  };
+  }
 
-  /**
-   *
-   * @returns Currently played song
-   */
-  public getCurrent = (): Song | undefined => this._current;
-
-  /**
-   *
-   * @returns Discord audio player
-   */
-  public getPlayer = (): AudioPlayer => this._player;
-
-  // private:
+  public get player(): AudioPlayer {
+    return this._player;
+  }
 
   private async _play(url: string) {
     this._player.play(
@@ -107,26 +107,23 @@ export class MootyAudioPlayer {
     await connection?.disconnect();
   }
 
-  /**
-   * Triggers after new song was added to the queue
-   */
   private async _onAddToQueue() {
-    if (!this.getCurrent()) {
+    if (!this.current) {
       if (this._queue.length > 0) {
-        this._setCurrent(this._queue.shift());
-        this._play(this.getCurrent()?.url!);
+        this.current = this._queue.shift();
+        this._play(this.current?.url!);
       }
     }
   }
 
   private async _onSongEnd() {
     // While we are skipping the song, lets ensure that we are not playing anything
-    this._setCurrent(undefined);
+    this.current = undefined;
 
     // Check if queue has any more songs
     if (this._queue.length > 0) {
-      this._setCurrent(this._queue.shift());
-      this._play(this.getCurrent()?.url!);
+      this.current = this._queue.shift();
+      this._play(this.current?.url!);
 
       await this._channel.send({
         embeds: [EmbedGenerator.getNextSongPlayingEmbed(this)],
@@ -147,9 +144,8 @@ export class MootyAudioPlayer {
     PlayerService.deletePlayer(this._guild);
   }
 
-  // public:
-
   /**
+   *
    *
    * @param song Song to add
    * @returns Embeded discord message
@@ -159,27 +155,23 @@ export class MootyAudioPlayer {
     return EmbedGenerator.getSongAddedToQueueEmbed(this);
   }
 
-  /**
-   * Skips currently played song
-   */
   public skip() {
-    this._setCurrent(undefined);
+    this.current = undefined;
     this._player.stop();
   }
 
   public pause() {
-    this._setPaused(true);
+    this.paused = true;
     this._player.pause();
   }
 
   public resume() {
-    this._setPaused(false);
+    this.paused = false;
     this._player.unpause();
   }
 
-  // return
   public shuffle() {
-    // Send error or smth
+    // TODO: Send error or smth
     if (this._queue.length < 2) return;
 
     this._queue = shuffle(this._queue);

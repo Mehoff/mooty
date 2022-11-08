@@ -66,7 +66,3 @@ Flow of player:
 - /story (Get last 10 songs played)
 - /story [page: int] (skip `10 * page` items)
 - Store yt-vid-id, timestamp, title
-
-### Refactor embed generator to be static class instead of being instantiated in every MootyPlayer instance
-
-### [BUG] Queue ordering is messed up

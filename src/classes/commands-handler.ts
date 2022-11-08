@@ -6,7 +6,7 @@ import path from "path";
 import { CacheType, Collection, CommandInteraction } from "discord.js";
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
-import { Command } from "../types";
+import { Command } from "../../types";
 
 export class CommandsHandler {
   private commandPaths: string[];

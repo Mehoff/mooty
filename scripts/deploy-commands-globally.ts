@@ -1,5 +1,5 @@
 import path from "path";
-import { CommandsHandler } from "../src/commands-handler";
+import { CommandsHandler } from "../src/classes";
 
 async function main() {
   const handler = new CommandsHandler(path.join(__dirname, "../src/commands"));

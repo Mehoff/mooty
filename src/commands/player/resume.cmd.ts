@@ -23,13 +23,13 @@ const Resume: Command = {
     const mooty: MootyAudioPlayer =
       PlayerService.createOrGetExistingPlayer(interaction);
 
-    if (mooty.getCurrent() === undefined)
+    if (mooty.current === undefined)
       return await interaction.reply({
         ephemeral: true,
         content: "Nothing to resume",
       });
 
-    if (!mooty.isPaused())
+    if (!mooty.current)
       return await interaction.reply({
         ephemeral: true,
         content: "Song is not paused",

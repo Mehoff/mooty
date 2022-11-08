@@ -12,9 +12,8 @@ import {
 import { Command } from "../../../types";
 import { YoutubeService } from "../../services/youtube/youtube.service";
 import { PlayerService } from "../../services/player/player.service";
-import { ServiceResponse } from "../../classes/service-response";
 import { DEFAULT_ERROR_MESSAGE } from "../../constants";
-import { Song } from "../../classes/song";
+import { Song, ServiceResponse } from "../../classes";
 import { MootyAudioPlayer } from "../../services/player/mooty-audio-player";
 
 const Play: Command = {
@@ -69,7 +68,7 @@ const Play: Command = {
       };
 
       // Join to voice channel and subscribe to player
-      joinVoiceChannel(connectionOptions).subscribe(mooty.getPlayer());
+      joinVoiceChannel(connectionOptions).subscribe(mooty.player);
     }
 
     // Add song to queue

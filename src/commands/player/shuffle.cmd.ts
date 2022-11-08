@@ -5,7 +5,7 @@ import {
   CacheType,
 } from "discord.js";
 import { Command } from "../../../types";
-import { EmbedGenerator } from "../../classes/embed-generator";
+import { EmbedGenerator } from "../../classes";
 import { PlayerService } from "../../services/player/player.service";
 
 const Shuffle: Command = {

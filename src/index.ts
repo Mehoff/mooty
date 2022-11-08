@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { Client } from "discord.js";
 import { GatewayIntentBits } from "discord-api-types/v9";
-import { CommandsHandler } from "./commands-handler";
+import { CommandsHandler } from "./classes";
 dotenv.config();
 
 const commandsHandler = new CommandsHandler(path.join(__dirname, "commands"));

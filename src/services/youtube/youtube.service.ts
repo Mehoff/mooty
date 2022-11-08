@@ -2,22 +2,11 @@ import ytdl from "ytdl-core";
 import axios from "axios";
 import { Readable } from "stream";
 import {
+  YoutubeVideoGetByURLItem,
   YoutubeVideoSearchResultItem,
-  YoutubeVideoSearchResultItemSnippet,
-} from "./types";
+} from "./interfaces";
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
-import {
-  ServiceErrorResponse,
-  ServiceResponse,
-} from "../../classes/service-response";
-import { Song } from "../../classes/song";
-
-export interface YoutubeVideoGetByURLItem {
-  kind: string;
-  etag: string;
-  id: string;
-  snippet: YoutubeVideoSearchResultItemSnippet;
-}
+import { ServiceErrorResponse, ServiceResponse, Song } from "../../classes";
 
 export class YoutubeService {
   private static options: ytdl.downloadOptions = {

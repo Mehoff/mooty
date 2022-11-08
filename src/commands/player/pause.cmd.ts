@@ -21,21 +21,21 @@ const Pause: Command = {
 
     const mooty = PlayerService.createOrGetExistingPlayer(interaction);
 
-    if (mooty.getCurrent() === undefined)
+    if (mooty.current === undefined)
       return await interaction.reply({
         ephemeral: true,
         content: "Nothing to pause",
       });
 
-    if (mooty.isPaused()) {
+    if (mooty.paused) {
       return await interaction.reply({
         ephemeral: true,
-        content: "Song is already paused",
+        content: "Player is already paused",
       });
     }
 
     mooty.pause();
-    await interaction.reply({ ephemeral: true, content: "Song is paused" });
+    await interaction.reply({ ephemeral: true, content: "Player is paused" });
   },
 };
 
