@@ -112,7 +112,7 @@ export class MootyAudioPlayer {
   private async _onAddToQueue() {
     if (!this.getCurrent()) {
       if (this._queue.length > 0) {
-        this._setCurrent(this._queue.pop());
+        this._setCurrent(this._queue.shift());
         this._play(this.getCurrent()?.url!);
       }
     }
@@ -124,7 +124,7 @@ export class MootyAudioPlayer {
 
     // Check if queue has any more songs
     if (this._queue.length > 0) {
-      this._setCurrent(this._queue.pop());
+      this._setCurrent(this._queue.shift());
       this._play(this.getCurrent()?.url!);
 
       await this._channel.send({
@@ -177,6 +177,8 @@ export class MootyAudioPlayer {
   }
 
   public isQueueEmpty = () => !(this._queue.length > 0);
+
+  public getQueueLength = () => this._queue.length;
 
   public getFromQueueByIndex(index: number): Song {
     if (index > this._queue.length - 1 || index < 0)
