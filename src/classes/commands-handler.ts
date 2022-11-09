@@ -8,6 +8,13 @@ import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import { Command } from "../../types";
 
+type DeployCommandsOptions = {
+  /**
+   * Should deploy to test-server or globally
+   */
+  global: boolean;
+};
+
 export class CommandsHandler {
   private commandPaths: string[];
   private commandsJSON: any[];
@@ -22,11 +29,8 @@ export class CommandsHandler {
     this.commands = new Collection();
   }
 
-  /**
-   * Deploy commands to discord guild
-   */
-  async deployCommands(options: { global: boolean }) {
-    console.log("Deploy commands...");
+  async deployCommands({ global }: DeployCommandsOptions) {
+    console.log(`Deploy commands ${global ? "globally" : ""} ...`);
 
     if (!fs.existsSync(this.commandsFolderPath))
       throw new Error(`Path: ${this.commandsFolderPath} does not exist`);
@@ -58,7 +62,13 @@ export class CommandsHandler {
             ),
         { body: this.commandsJSON }
       )
-      .then(() => console.log("Successfully registered application commands."))
+      .then(() =>
+        console.log(
+          `Successfully registered ${
+            this.commandPaths.length
+          } application commands ${global ? "globally" : ""}.`
+        )
+      )
       .catch(console.error);
 
     return;

@@ -5,7 +5,10 @@ import { GatewayIntentBits } from "discord-api-types/v9";
 import { CommandsHandler } from "./classes";
 dotenv.config();
 
-const commandsHandler = new CommandsHandler(path.join(__dirname, "commands"));
+const commandsPath = path.join(__dirname, "commands");
+console.log(commandsPath);
+
+const commandsHandler = new CommandsHandler(commandsPath);
 
 const client = new Client({
   intents: [
