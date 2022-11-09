@@ -125,7 +125,9 @@ export class CommandsHandler {
       for (const innerPath of innerPaths)
         this.readPath(path.join(_path, innerPath));
     } else if (fs.lstatSync(_path).isFile())
-      if (_path.endsWith(".cmd.ts")) this.commandPaths.push(_path);
+      if (_path.endsWith(".cmd.ts") || _path.endsWith(".cmd.js"))
+        // TODO: Upgrade this if-statement to use regex syntax like: "*.cmd.*"
+        this.commandPaths.push(_path);
   }
 
   /**

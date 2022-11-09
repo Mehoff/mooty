@@ -8,6 +8,10 @@ dotenv.config();
 const commandsPath = path.join(__dirname, "commands");
 console.log(commandsPath);
 
+setTimeout(() => {
+  console.log(commandsPath);
+}, 10 * 1000);
+
 const commandsHandler = new CommandsHandler(commandsPath);
 
 const client = new Client({
