@@ -17,7 +17,7 @@ const Resume: Command = {
     if (!connection)
       return await interaction.reply({
         ephemeral: true,
-        content: "No voice connection detected",
+        content: "⚠️No voice connection detected",
       });
 
     const mooty: MootyAudioPlayer =
@@ -26,13 +26,13 @@ const Resume: Command = {
     if (mooty.current === undefined)
       return await interaction.reply({
         ephemeral: true,
-        content: "Nothing to resume",
+        content: "⚠️Nothing to resume",
       });
 
     if (!mooty.current)
       return await interaction.reply({
         ephemeral: true,
-        content: "Song is not paused",
+        content: "⚠️Song is not paused",
       });
 
     mooty.resume();

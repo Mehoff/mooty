@@ -5,6 +5,7 @@ import {
   createAudioResource,
   getVoiceConnection,
   AudioPlayerError,
+  AudioPlayerState,
 } from "@discordjs/voice";
 import {
   ChatInputCommandInteraction,
@@ -12,6 +13,7 @@ import {
   EmbedBuilder,
   TextBasedChannel,
   Guild,
+  Message,
 } from "discord.js";
 import { EmbedGenerator, Song } from "../../classes";
 import { shuffle } from "../../helpers";
@@ -25,12 +27,15 @@ export class MootyAudioPlayer {
   private _channel: TextBasedChannel;
   private _guild: Guild;
   private _paused: boolean;
+  private _pausedMessage: Message<true> | Message<false> | null;
 
   constructor(interaction: ChatInputCommandInteraction<CacheType>) {
     this._player = this._createAudioPlayer();
     this._queue = [];
     this._current = undefined;
     this._paused = true;
+
+    this._pausedMessage = null;
 
     // Is this ok to ignore "Possibly undefined" warning here?
     this._channel = interaction.channel!;
@@ -40,34 +45,47 @@ export class MootyAudioPlayer {
   private _createAudioPlayer(): AudioPlayer {
     const player = createAudioPlayer();
 
-    player.on("stateChange", async (oldState, newState) => {
-      if (
-        oldState.status === AudioPlayerStatus.Playing &&
-        newState.status === AudioPlayerStatus.Paused
-      ) {
-        await this._channel.send({
-          embeds: [EmbedGenerator.buildMessageEmbed("Player is paused")],
-        });
-      }
-
-      if (
-        oldState.status === AudioPlayerStatus.Paused &&
-        newState.status === AudioPlayerStatus.Playing
-      ) {
-        this._channel
-          .send({
-            embeds: [EmbedGenerator.buildMessageEmbed("Player is resumed")],
-          })
-          .then((msg) => setTimeout(() => msg.delete(), 3500));
-      }
-    });
-    player.on(AudioPlayerStatus.Idle, (err) => this._onSongEnd());
+    player.on("stateChange", this.handlePlayerStateChange);
     player.on("error", (err: AudioPlayerError) => {
       // TODO: Handle 410 Error here;
       console.error(err);
     });
 
     return player;
+  }
+
+  // Kind of refactored, but I think there is still a cleaner solution to this case
+  private async handlePlayerStateChange(
+    oldState: AudioPlayerState,
+    newState: AudioPlayerState
+  ) {
+    const status = { oldStatus: oldState.status, newStatus: newState.status };
+
+    switch (status) {
+      case {
+        oldStatus: AudioPlayerStatus.Paused,
+        newStatus: AudioPlayerStatus.Playing,
+      }:
+        this._pausedMessage = await this._channel.send({
+          embeds: [EmbedGenerator.buildMessageEmbed("⏸️ Player is paused")],
+        });
+        break;
+      case {
+        oldStatus: AudioPlayerStatus.Playing,
+        newStatus: AudioPlayerStatus.Paused,
+      }:
+        if (this._pausedMessage && this._pausedMessage.deletable) {
+          await this._pausedMessage.delete();
+          this._pausedMessage = null;
+        }
+        break;
+      case {
+        oldStatus: AudioPlayerStatus.Playing,
+        newStatus: AudioPlayerStatus.Idle,
+      }:
+        this._onSongEnd();
+        break;
+    }
   }
 
   public get paused() {
@@ -155,9 +173,8 @@ export class MootyAudioPlayer {
     return EmbedGenerator.getSongAddedToQueueEmbed(this);
   }
 
-  public skip() {
-    this.current = undefined;
-    this._player.stop();
+  public async skip() {
+    await this._onSongEnd();
   }
 
   public pause() {

@@ -16,7 +16,7 @@ const Pause: Command = {
     if (!connection)
       return await interaction.reply({
         ephemeral: true,
-        content: "No voice connection detected",
+        content: "⚠️No voice connection detected",
       });
 
     const mooty = PlayerService.createOrGetExistingPlayer(interaction);
@@ -24,13 +24,13 @@ const Pause: Command = {
     if (mooty.current === undefined)
       return await interaction.reply({
         ephemeral: true,
-        content: "Nothing to pause",
+        content: "⚠️Nothing to pause",
       });
 
     if (mooty.paused) {
       return await interaction.reply({
         ephemeral: true,
-        content: "Player is already paused",
+        content: "⚠️Player is already paused",
       });
     }
 

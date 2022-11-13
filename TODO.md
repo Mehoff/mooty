@@ -66,3 +66,11 @@ Flow of player:
 - /story (Get last 10 songs played)
 - /story [page: int] (skip `10 * page` items)
 - Store yt-vid-id, timestamp, title
+
+## Bugs
+
+- Play(1 song) -> Pause -> Skip => Mooty does not disconnect, current is undefined though
+
+## Logger
+
+- Use existing logger or write own that will be configurable by flags on launch
