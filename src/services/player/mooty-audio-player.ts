@@ -46,7 +46,7 @@ export class MootyAudioPlayer {
         newState.status === AudioPlayerStatus.Paused
       ) {
         await this._channel.send({
-          embeds: [EmbedGenerator.buildMessageEmbed("Song is paused")],
+          embeds: [EmbedGenerator.buildMessageEmbed("Player is paused")],
         });
       }
 
@@ -56,7 +56,7 @@ export class MootyAudioPlayer {
       ) {
         this._channel
           .send({
-            embeds: [EmbedGenerator.buildMessageEmbed("Song is resumed")],
+            embeds: [EmbedGenerator.buildMessageEmbed("Player is resumed")],
           })
           .then((msg) => setTimeout(() => msg.delete(), 3500));
       }

@@ -15,8 +15,6 @@ export class PlayerService {
 
     const exists = this.playersMap.get(interaction.guildId);
 
-    console.log("Player exists?: ", Boolean(exists));
-
     if (!exists) {
       const newPlayer = this.createPlayer(interaction);
       this.playersMap.set(interaction.guildId, newPlayer);

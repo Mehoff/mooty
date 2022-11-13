@@ -54,7 +54,6 @@ const Play: Command = {
 
     // Check if bot connected to a voice channel
     const connection = getVoiceConnection(interaction.guildId!);
-    console.log("Connection: ", connection);
 
     // Create new Mooty player instance or get existing
     const mooty: MootyAudioPlayer =
