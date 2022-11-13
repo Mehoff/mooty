@@ -3,6 +3,8 @@ import {
   CreateVoiceConnectionOptions,
   JoinVoiceChannelOptions,
   getVoiceConnection,
+  VoiceConnectionDisconnectedState,
+  VoiceConnectionStatus,
 } from "@discordjs/voice";
 import {
   CacheType,
@@ -58,7 +60,10 @@ const Play: Command = {
       PlayerService.createOrGetExistingPlayer(interaction);
 
     // If connection does not exist - player is also must be undefined, create AudioPlayer and connect to voice channel
-    if (!connection) {
+    if (
+      !connection ||
+      connection.state.status === VoiceConnectionStatus.Disconnected
+    ) {
       // Create connection options to channel
       const connectionOptions: JoinVoiceChannelOptions &
         CreateVoiceConnectionOptions = {
