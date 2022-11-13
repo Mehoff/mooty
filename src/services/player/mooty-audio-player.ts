@@ -135,7 +135,6 @@ export class MootyAudioPlayer {
   }
 
   private async _onSongEnd() {
-    console.info("on-song-end");
     // While we are skipping the song, lets ensure that we are not playing anything
     this.current = undefined;
 
@@ -153,7 +152,6 @@ export class MootyAudioPlayer {
   }
 
   private async _onQueueFinish() {
-    console.log("onQueueFinish");
     await this._channel.send({
       embeds: [EmbedGenerator.getQueueFinishedEmbed()],
     });
