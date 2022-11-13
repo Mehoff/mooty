@@ -38,7 +38,7 @@ const Play: Command = {
 
     // If failed to find or not in voice channel - throw error
     if (!member || !member.voice.channelId)
-      return await interaction.reply("Member is not in a voice channel");
+      return await interaction.reply("⚠️Member is not in a voice channel");
 
     // Get response from Youtube
     const { data, message, isError }: ServiceResponse<Song> =

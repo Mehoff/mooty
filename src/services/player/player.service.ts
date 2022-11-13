@@ -19,8 +19,11 @@ export class PlayerService {
       const newPlayer = this.createPlayer(interaction);
       this.playersMap.set(interaction.guildId, newPlayer);
 
+      console.log("Created new player");
       return newPlayer;
     }
+
+    console.log("Returned existing player");
     return exists;
   }
 
@@ -28,6 +31,7 @@ export class PlayerService {
     new MootyAudioPlayer(interaction);
 
   static deletePlayer(guild: Guild) {
+    console.log("deletePlayer()");
     const exists = this.playersMap.get(guild.id);
 
     if (!exists) {
@@ -37,6 +41,8 @@ export class PlayerService {
       return;
     }
 
-    PlayerService.playersMap.delete(guild.id);
+    PlayerService.playersMap.delete(guild.id)
+      ? console.log("Player was deleted")
+      : console.log("Can't find player, not deleted");
   }
 }

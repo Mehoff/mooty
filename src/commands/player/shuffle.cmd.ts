@@ -15,7 +15,7 @@ const Shuffle: Command = {
   execute: async (interaction: ChatInputCommandInteraction<CacheType>) => {
     const connection = getVoiceConnection(interaction.guildId!);
     if (!connection)
-      return await interaction.reply("No voice connection detected");
+      return await interaction.reply("⚠️No voice connection detected");
 
     const mooty = PlayerService.createOrGetExistingPlayer(interaction);
 

@@ -5,6 +5,7 @@ import {
   createAudioResource,
   getVoiceConnection,
   AudioPlayerError,
+  AudioPlayerState,
 } from "@discordjs/voice";
 import {
   ChatInputCommandInteraction,
@@ -44,31 +45,47 @@ export class MootyAudioPlayer {
   private _createAudioPlayer(): AudioPlayer {
     const player = createAudioPlayer();
 
-    player.on("stateChange", async (oldState, newState) => {
-      if (
-        oldState.status === AudioPlayerStatus.Playing &&
-        newState.status === AudioPlayerStatus.Paused
-      ) {
-        this._pausedMessage = await this._channel.send({
-          embeds: [EmbedGenerator.buildMessageEmbed("⏸️ Player is paused")],
-        });
-      } else if (
-        oldState.status === AudioPlayerStatus.Paused &&
-        newState.status === AudioPlayerStatus.Playing
-      ) {
-        if (this._pausedMessage && this._pausedMessage.deletable) {
-          await this._pausedMessage.delete();
-          this._pausedMessage = null;
-        }
-      }
-    });
-    player.on(AudioPlayerStatus.Idle, (err) => this._onSongEnd());
+    player.on("stateChange", this.handlePlayerStateChange);
     player.on("error", (err: AudioPlayerError) => {
       // TODO: Handle 410 Error here;
       console.error(err);
     });
 
     return player;
+  }
+
+  // Kind of refactored, but I think there is still a cleaner solution to this case
+  private async handlePlayerStateChange(
+    oldState: AudioPlayerState,
+    newState: AudioPlayerState
+  ) {
+    const status = { oldStatus: oldState.status, newStatus: newState.status };
+
+    switch (status) {
+      case {
+        oldStatus: AudioPlayerStatus.Paused,
+        newStatus: AudioPlayerStatus.Playing,
+      }:
+        this._pausedMessage = await this._channel.send({
+          embeds: [EmbedGenerator.buildMessageEmbed("⏸️ Player is paused")],
+        });
+        break;
+      case {
+        oldStatus: AudioPlayerStatus.Playing,
+        newStatus: AudioPlayerStatus.Paused,
+      }:
+        if (this._pausedMessage && this._pausedMessage.deletable) {
+          await this._pausedMessage.delete();
+          this._pausedMessage = null;
+        }
+        break;
+      case {
+        oldStatus: AudioPlayerStatus.Playing,
+        newStatus: AudioPlayerStatus.Idle,
+      }:
+        this._onSongEnd();
+        break;
+    }
   }
 
   public get paused() {
@@ -118,6 +135,7 @@ export class MootyAudioPlayer {
   }
 
   private async _onSongEnd() {
+    console.info("on-song-end");
     // While we are skipping the song, lets ensure that we are not playing anything
     this.current = undefined;
 
@@ -135,6 +153,7 @@ export class MootyAudioPlayer {
   }
 
   private async _onQueueFinish() {
+    console.log("onQueueFinish");
     await this._channel.send({
       embeds: [EmbedGenerator.getQueueFinishedEmbed()],
     });
@@ -156,9 +175,10 @@ export class MootyAudioPlayer {
     return EmbedGenerator.getSongAddedToQueueEmbed(this);
   }
 
-  public skip() {
-    this.current = undefined;
-    this._player.stop();
+  public async skip() {
+    // this.current = undefined;
+    // this._player.stop();
+    await this._onSongEnd();
   }
 
   public pause() {
