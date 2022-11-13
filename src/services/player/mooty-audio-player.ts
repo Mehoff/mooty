@@ -12,6 +12,7 @@ import {
   EmbedBuilder,
   TextBasedChannel,
   Guild,
+  Message,
 } from "discord.js";
 import { EmbedGenerator, Song } from "../../classes";
 import { shuffle } from "../../helpers";
@@ -25,12 +26,15 @@ export class MootyAudioPlayer {
   private _channel: TextBasedChannel;
   private _guild: Guild;
   private _paused: boolean;
+  private _pausedMessage: Message<true> | Message<false> | null;
 
   constructor(interaction: ChatInputCommandInteraction<CacheType>) {
     this._player = this._createAudioPlayer();
     this._queue = [];
     this._current = undefined;
     this._paused = true;
+
+    this._pausedMessage = null;
 
     // Is this ok to ignore "Possibly undefined" warning here?
     this._channel = interaction.channel!;
@@ -45,20 +49,17 @@ export class MootyAudioPlayer {
         oldState.status === AudioPlayerStatus.Playing &&
         newState.status === AudioPlayerStatus.Paused
       ) {
-        await this._channel.send({
-          embeds: [EmbedGenerator.buildMessageEmbed("Player is paused")],
+        this._pausedMessage = await this._channel.send({
+          embeds: [EmbedGenerator.buildMessageEmbed("⏸️ Player is paused")],
         });
-      }
-
-      if (
+      } else if (
         oldState.status === AudioPlayerStatus.Paused &&
         newState.status === AudioPlayerStatus.Playing
       ) {
-        this._channel
-          .send({
-            embeds: [EmbedGenerator.buildMessageEmbed("Player is resumed")],
-          })
-          .then((msg) => setTimeout(() => msg.delete(), 3500));
+        if (this._pausedMessage && this._pausedMessage.deletable) {
+          await this._pausedMessage.delete();
+          this._pausedMessage = null;
+        }
       }
     });
     player.on(AudioPlayerStatus.Idle, (err) => this._onSongEnd());

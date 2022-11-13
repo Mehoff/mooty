@@ -15,21 +15,16 @@ export class EmbedGenerator {
         .setTitle(`Added song to the queue`)
         .setTimestamp();
 
-    const fields: APIEmbedField[] = [
+    let fields: APIEmbedField[] = [
       this._getInQueueField(mooty),
       this._getNextUpField(mooty),
     ];
 
-    if (mooty.paused)
-      fields.push({
-        name: "Player is paused!😒",
-        value: "Use **/resume** to un-pause player 🎶",
-        inline: false,
-      });
+    fields = this._populateFieldsWithPausedInfo(mooty, fields);
 
     return new EmbedBuilder()
       .setColor(EMBED_COLOR)
-      .setTitle(`Added __**${song.title}**__ to the queue`)
+      .setTitle(`🎶 Added __**${song.title}**__ to the queue`)
       .addFields(fields)
       .setFooter({
         text: `Requested by ${song.requestedBy?.user.username}`,
@@ -48,10 +43,17 @@ export class EmbedGenerator {
         .setTitle(`Next song is playing`)
         .setTimestamp();
 
+    let fields: APIEmbedField[] = [
+      this._getInQueueField(mooty),
+      this._getNextUpField(mooty),
+    ];
+
+    fields = this._populateFieldsWithPausedInfo(mooty, fields);
+
     return new EmbedBuilder()
       .setColor(EMBED_COLOR)
-      .setTitle(`Next playing __**${current.title}**__`)
-      .addFields([this._getInQueueField(mooty), this._getNextUpField(mooty)])
+      .setTitle(`⏭️ Playing next: __**${current.title}**__`)
+      .addFields(fields)
       .setFooter({
         text: `Requested by ${current.requestedBy?.user.username!}`,
         iconURL: current.requestedBy?.user.avatarURL({ size: 64 })!,
@@ -69,9 +71,16 @@ export class EmbedGenerator {
         .setTitle("There is total silence, no song is being played")
         .setTimestamp();
 
+    let fields: APIEmbedField[] = [
+      this._getInQueueField(mooty),
+      this._getNextUpField(mooty),
+    ];
+
+    fields = this._populateFieldsWithPausedInfo(mooty, fields);
+
     return new EmbedBuilder()
       .setTitle(`Currently playing __**${song.title}**__`)
-      .addFields([this._getInQueueField(mooty), this._getNextUpField(mooty)])
+      .addFields(fields)
       .setFooter({
         text: `Requested by ${song.requestedBy?.user.username!}`,
         iconURL: song.requestedBy?.user.avatarURL({ size: 64 })!,
@@ -123,4 +132,19 @@ export class EmbedGenerator {
       inline: true,
     };
   };
+
+  private static _populateFieldsWithPausedInfo(
+    mooty: MootyAudioPlayer,
+    fields: APIEmbedField[]
+  ): APIEmbedField[] {
+    if (mooty.paused) {
+      fields.push({
+        name: "Player is paused!😒",
+        value: "Use **/resume** to un-pause player 🎶",
+        inline: false,
+      });
+    }
+
+    return fields;
+  }
 }
