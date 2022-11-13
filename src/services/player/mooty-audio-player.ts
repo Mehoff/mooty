@@ -174,8 +174,6 @@ export class MootyAudioPlayer {
   }
 
   public async skip() {
-    // this.current = undefined;
-    // this._player.stop();
     await this._onSongEnd();
   }
 

@@ -70,3 +70,7 @@ Flow of player:
 ## Bugs
 
 - Play(1 song) -> Pause -> Skip => Mooty does not disconnect, current is undefined though
+
+## Logger
+
+- Use existing logger or write own that will be configurable by flags on launch
