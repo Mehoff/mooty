@@ -4,7 +4,8 @@ import {
   ChatInputCommandInteraction,
   CacheType,
 } from "discord.js";
-import { Command } from "../../../types";
+import { EmbedGenerator } from "../../classes";
+import { Command } from "../../interfaces";
 import { MootyAudioPlayer } from "../../services/player/mooty-audio-player";
 import { PlayerService } from "../../services/player/player.service";
 
@@ -17,7 +18,12 @@ const Resume: Command = {
     if (!connection)
       return await interaction.reply({
         ephemeral: true,
-        content: "⚠️No voice connection detected",
+        embeds: [
+          EmbedGenerator.buildMessageEmbed(
+            "⚠️ Failed to process command",
+            "No voice connection detected"
+          ),
+        ],
       });
 
     const mooty: MootyAudioPlayer =
@@ -26,17 +32,30 @@ const Resume: Command = {
     if (mooty.current === undefined)
       return await interaction.reply({
         ephemeral: true,
-        content: "⚠️Nothing to resume",
+        embeds: [
+          EmbedGenerator.buildMessageEmbed(
+            "⚠️ Failed to process command",
+            "Nothing to resume"
+          ),
+        ],
       });
 
     if (!mooty.current)
       return await interaction.reply({
         ephemeral: true,
-        content: "⚠️Song is not paused",
+        embeds: [
+          EmbedGenerator.buildMessageEmbed(
+            "⚠️ Failed to process command",
+            "Song is not paused"
+          ),
+        ],
       });
 
     mooty.resume();
-    await interaction.reply({ ephemeral: true, content: "Song resumed" });
+    await interaction.reply({
+      ephemeral: true,
+      embeds: [EmbedGenerator.buildMessageEmbed("▶️ Song resumed")],
+    });
   },
 };
 

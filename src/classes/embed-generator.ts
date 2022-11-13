@@ -89,6 +89,7 @@ export class EmbedGenerator {
       .setTimestamp();
   }
 
+  // TODO: Convert params to 'options' object and add 'timestamp: boolean' prop to it
   public static buildMessageEmbed(title: string, description: string = "") {
     const embed = new EmbedBuilder().setColor(EMBED_COLOR).setTitle(title);
 
