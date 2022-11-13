@@ -14,6 +14,9 @@ export class PlayerService {
       throw new Error("Interaction does not have guild data");
 
     const exists = this.playersMap.get(interaction.guildId);
+
+    console.log("Player exists?: ", Boolean(exists));
+
     if (!exists) {
       const newPlayer = this.createPlayer(interaction);
       this.playersMap.set(interaction.guildId, newPlayer);
