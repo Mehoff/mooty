@@ -45,7 +45,13 @@ export class MootyAudioPlayer {
   private _createAudioPlayer(): AudioPlayer {
     const player = createAudioPlayer();
 
-    player.on("stateChange", this.handlePlayerStateChange);
+    player.on(
+      "stateChange",
+      (oldState: AudioPlayerState, newState: AudioPlayerState) => {
+        this._handlePlayerStateChange(oldState, newState);
+      }
+    );
+
     player.on("error", (err: AudioPlayerError) => {
       // TODO: Handle 410 Error here;
       console.error(err);
@@ -54,38 +60,51 @@ export class MootyAudioPlayer {
     return player;
   }
 
-  // Kind of refactored, but I think there is still a cleaner solution to this case
-  private async handlePlayerStateChange(
+  private async _handlePlayerStateChange(
     oldState: AudioPlayerState,
     newState: AudioPlayerState
   ) {
     const status = { oldStatus: oldState.status, newStatus: newState.status };
 
-    switch (status) {
-      case {
-        oldStatus: AudioPlayerStatus.Paused,
-        newStatus: AudioPlayerStatus.Playing,
-      }:
-        this._pausedMessage = await this._channel.send({
-          embeds: [EmbedGenerator.buildMessageEmbed("⏸️ Player is paused")],
-        });
-        break;
-      case {
-        oldStatus: AudioPlayerStatus.Playing,
-        newStatus: AudioPlayerStatus.Paused,
-      }:
-        if (this._pausedMessage && this._pausedMessage.deletable) {
-          await this._pausedMessage.delete();
-          this._pausedMessage = null;
+    switch (status.oldStatus) {
+      case AudioPlayerStatus.Playing:
+        {
+          switch (status.newStatus) {
+            case AudioPlayerStatus.Paused:
+              await this._pausePlayer();
+              break;
+            case AudioPlayerStatus.Idle:
+              this._onSongEnd();
+              break;
+          }
         }
         break;
-      case {
-        oldStatus: AudioPlayerStatus.Playing,
-        newStatus: AudioPlayerStatus.Idle,
-      }:
-        this._onSongEnd();
+      case AudioPlayerStatus.Paused:
+        {
+          switch (status.newStatus) {
+            case AudioPlayerStatus.Playing:
+              await this._resumePlayer();
+              break;
+            case AudioPlayerStatus.Idle:
+              this._onSongEnd();
+              break;
+          }
+        }
         break;
     }
+  }
+
+  private async _resumePlayer() {
+    if (this._pausedMessage && this._pausedMessage.deletable) {
+      await this._pausedMessage.delete();
+      this._pausedMessage = null;
+    }
+  }
+
+  private async _pausePlayer() {
+    this._pausedMessage = await this._channel.send({
+      embeds: [EmbedGenerator.buildMessageEmbed("⏸️ Player is paused")],
+    });
   }
 
   public get paused() {
