@@ -11,12 +11,12 @@ import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
 } from "discord.js";
-import { Command } from "../../../types";
 import { YoutubeService } from "../../services/youtube/youtube.service";
 import { PlayerService } from "../../services/player/player.service";
 import { DEFAULT_ERROR_MESSAGE } from "../../constants";
-import { Song, ServiceResponse } from "../../classes";
+import { Song, ServiceResponse, EmbedGenerator } from "../../classes";
 import { MootyAudioPlayer } from "../../services/player/mooty-audio-player";
+import { Command } from "../../interfaces";
 
 const Play: Command = {
   data: new SlashCommandBuilder()
@@ -38,7 +38,14 @@ const Play: Command = {
 
     // If failed to find or not in voice channel - throw error
     if (!member || !member.voice.channelId)
-      return await interaction.reply("Member is not in a voice channel");
+      return await interaction.reply({
+        embeds: [
+          EmbedGenerator.buildMessageEmbed(
+            "⚠️ Failed to process command",
+            "Member is not in a voice channel"
+          ),
+        ],
+      });
 
     // Get response from Youtube
     const { data, message, isError }: ServiceResponse<Song> =
@@ -46,7 +53,14 @@ const Play: Command = {
 
     // If any error occured and command cannot be executed - reply with message
     if (isError)
-      return await interaction.reply(message ? message : DEFAULT_ERROR_MESSAGE);
+      return await interaction.reply({
+        embeds: [
+          EmbedGenerator.buildMessageEmbed(
+            "⚠️ Failed to process command",
+            message ? message : DEFAULT_ERROR_MESSAGE
+          ),
+        ],
+      });
 
     // If no error, data is a Song info
     const song: Song = data!;

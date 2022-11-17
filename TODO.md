@@ -66,3 +66,7 @@ Flow of player:
 - /story (Get last 10 songs played)
 - /story [page: int] (skip `10 * page` items)
 - Store yt-vid-id, timestamp, title
+
+## Logger
+
+- Use existing logger or write own that will be configurable by flags on launch
