@@ -52,9 +52,22 @@ export class MootyAudioPlayer {
       }
     );
 
-    player.on("error", (err: AudioPlayerError) => {
-      // TODO: Handle 410 Error here;
-      console.error(err);
+    player.on("error", async (err: AudioPlayerError) => {
+      if (err.message.includes("410")) {
+        if (this._channel) {
+          this._channel.send({
+            embeds: [
+              EmbedGenerator.buildMessageEmbed(
+                "⚠️ Failed to play video",
+                "Probably video you are trying to play is age-restricted! To play age-restricted videos - fill `YOUTUBE_3PSID` and `YOUTUBE_3PAPISID` environment variables. [More info on this topic](https://github.com/Walkyst/lavaplayer-fork/issues/18). If video is not age-restricted - contact bot owner"
+              ),
+            ],
+          });
+        }
+        await this._onSongEnd();
+      }
+
+      console.log(err);
     });
 
     return player;
