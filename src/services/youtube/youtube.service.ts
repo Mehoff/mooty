@@ -23,6 +23,30 @@ export class YoutubeService {
         : undefined,
   };
 
+  public static async playlist(
+    interaction: ChatInputCommandInteraction<CacheType>
+  ): Promise<ServiceResponse<Song[]>> {
+    let url = interaction.options.getString("url");
+
+    if (!url) return new ServiceErrorResponse<Song[]>("URL was not provided");
+
+    url = url.trim();
+
+    if (!ytdl.validateURL(url))
+      return new ServiceErrorResponse<Song[]>(
+        "Parameter must be an youtube playlist url"
+      );
+
+    try {
+      // TODO: Add implementation
+    } catch (err) {
+      console.error(err);
+      return new ServiceErrorResponse<Song[]>(
+        "Failed to play youtube playlist"
+      );
+    }
+  }
+
   public static async handleQuery(
     interaction: ChatInputCommandInteraction<CacheType>
   ): Promise<ServiceResponse<Song>> {
