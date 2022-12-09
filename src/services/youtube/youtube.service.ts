@@ -2,6 +2,7 @@ import ytdl from "ytdl-core";
 import axios from "axios";
 import { Readable } from "stream";
 import {
+  PlaylistItemListResponse,
   YoutubeVideoGetByURLItem,
   YoutubeVideoSearchResultItem,
 } from "./interfaces";
@@ -46,7 +47,9 @@ export class YoutubeService {
       const reqUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${process.env.YOUTUBE_API_KEY}`;
 
       const response = await axios.get(encodeURI(reqUrl));
-      console.info(response);
+      const itemList: PlaylistItemListResponse = response.data;
+
+      console.log(itemList.items[0]);
 
       return new ServiceResponse<Song[]>([], "Temp", false);
     } catch (err) {

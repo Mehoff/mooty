@@ -103,7 +103,6 @@ export class CommandsHandler {
         throw new Error("Bad token");
     }
 
-    console.log("token:", token);
     const rest = new REST({ version: "9" }).setToken(token);
 
     rest

@@ -39,8 +39,8 @@ const Playlist: Command = {
         ],
       });
 
-    const { data, message, isError }: ServiceResponse<Song> =
-      await YoutubeService.handleQuery(interaction);
+    const { data, message, isError }: ServiceResponse<Song[]> =
+      await YoutubeService.playlist(interaction);
 
     // const connection = getVoiceConnection(interaction.guildId!);
     // if (!connection)
