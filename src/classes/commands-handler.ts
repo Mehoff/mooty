@@ -8,11 +8,21 @@ import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import { Command } from "../interfaces";
 
+export enum BuildType {
+  PRODUCTION,
+  DEV,
+}
+
 type DeployCommandsOptions = {
   /**
    * Should deploy to test-server or globally
    */
   global: boolean;
+
+  /**
+   * Deploy commands to Mooty or MootyTest
+   */
+  build: BuildType;
 };
 
 export class CommandsHandler {
@@ -29,8 +39,12 @@ export class CommandsHandler {
     this.commands = new Collection();
   }
 
-  async deployCommands({ global }: DeployCommandsOptions) {
-    console.log(`Deploy commands ${global ? "globally" : ""} ...`);
+  async deployCommands({ global, build }: DeployCommandsOptions) {
+    console.info(
+      `Deploy commands ${global ? "globally" : ""} to ${
+        build === BuildType.DEV ? "development" : "production"
+      } build ...`
+    );
 
     if (!fs.existsSync(this.commandsFolderPath))
       throw new Error(`Path: ${this.commandsFolderPath} does not exist`);
@@ -48,9 +62,28 @@ export class CommandsHandler {
       this.commandsJSON.push(command.data.toJSON());
     }
 
-    const rest = new REST({ version: "9" }).setToken(
-      `${process.env.DISCORD_TOKEN}`
-    );
+    let token: string;
+
+    switch (build) {
+      case BuildType.PRODUCTION:
+        if (!process.env.DISCORD_PROD_TOKEN)
+          throw new Error(
+            `Bad discord production token: ${process.env.DISCORD_PROD_TOKEN}`
+          );
+        token = `${process.env.DISCORD_PROD_TOKEN}`;
+        break;
+      case BuildType.DEV:
+        if (!process.env.DISCORD_DEV_TOKEN)
+          throw new Error(
+            `Bad discord dev token: ${process.env.DISCORD_DEV_TOKEN}`
+          );
+        token = `${process.env.DISCORD_DEV_TOKEN}`;
+        break;
+      default:
+        throw new Error("Bad token");
+    }
+
+    const rest = new REST({ version: "9" }).setToken(token);
 
     rest
       .put(
