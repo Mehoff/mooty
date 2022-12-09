@@ -24,6 +24,13 @@ export class YoutubeService {
         : undefined,
   };
 
+  private static async requestPlaylistItemList(
+    url: string,
+    nextPageToken: string = ""
+  ) {
+    // TODO: Implement
+  }
+
   public static async playlist(
     interaction: ChatInputCommandInteraction<CacheType>
   ): Promise<ServiceResponse<Song[]>> {
@@ -44,12 +51,22 @@ export class YoutubeService {
 
     // If playlist has more than 50 vids, check out youtube api request trashhold, to not get error, and fetch until we hit all videos.
     try {
-      const reqUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${process.env.YOUTUBE_API_KEY}`;
+      const songs: Song[] = [];
 
+      // Make a recursion with request
+
+      const reqUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${process.env.YOUTUBE_API_KEY}`;
       const response = await axios.get(encodeURI(reqUrl));
+
       const itemList: PlaylistItemListResponse = response.data;
 
-      console.log(itemList.items[0]);
+      for (const item of itemList.items) {
+        songs.push({
+          thumbnailUrl: item.snippet.thumbnails.default.url,
+          title: item.snippet.title,
+          url: this.getVideoUrlById(item.snippet.resourceId.videoId),
+        });
+      }
 
       return new ServiceResponse<Song[]>([], "Temp", false);
     } catch (err) {

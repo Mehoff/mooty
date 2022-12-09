@@ -8,6 +8,8 @@ interface PlaylistItemListResponsePageInfo {
 export interface PlaylistItemListResponse {
   kind: string;
   etag: string;
-  items: PlaylistItem[];
+  nextPageToken: string;
+  prevPageToken: string;
   pageInfo: PlaylistItemListResponsePageInfo;
+  items: PlaylistItem[];
 }

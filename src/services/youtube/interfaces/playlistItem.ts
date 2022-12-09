@@ -55,7 +55,13 @@ interface PlaylistItemSnippet {
   channelId: string;
   title: string;
   description: string;
-  thumbnails: PlaylistItemSnippetThumbnail[];
+  thumbnails: {
+    default: PlaylistItemSnippetThumbnail;
+    medium: PlaylistItemSnippetThumbnail;
+    high: PlaylistItemSnippetThumbnail;
+    standart: PlaylistItemSnippetThumbnail;
+    maxres: PlaylistItemSnippetThumbnail;
+  };
   channelTitle: string;
   videoOwnerChannelTitle: string;
   videoOwnerChannelId: string;
