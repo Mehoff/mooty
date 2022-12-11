@@ -42,6 +42,16 @@ const Playlist: Command = {
     const { data, message, isError }: ServiceResponse<Song[]> =
       await YoutubeService.playlist(interaction);
 
+    if (!data && isError) {
+      return await interaction.reply({
+        embeds: [
+          EmbedGenerator.buildMessageEmbed(
+            "⚠️ Failed to process command",
+            message ? message : "Failed to add songs from playlist to queue"
+          ),
+        ],
+      });
+    }
     // const connection = getVoiceConnection(interaction.guildId!);
     // if (!connection)
     //   return await interaction.reply({
@@ -56,6 +66,15 @@ const Playlist: Command = {
 
     const mooty: MootyAudioPlayer =
       PlayerService.createOrGetExistingPlayer(interaction);
+
+    if (data !== undefined) {
+      const embed = await mooty.add(...data);
+
+      return await interaction.reply({
+        ephemeral: true,
+        embeds: [embed],
+      });
+    }
 
     await interaction.reply({
       ephemeral: true,

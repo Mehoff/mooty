@@ -27,8 +27,16 @@ export class YoutubeService {
   private static async requestPlaylistItemList(
     url: string,
     nextPageToken: string = ""
-  ) {
-    // TODO: Implement
+  ): Promise<PlaylistItemListResponse> {
+    const response = await axios.get(
+      encodeURI(nextPageToken ? url + `&nextPageToken=${nextPageToken}` : url)
+    );
+
+    if (response.status !== 200) {
+      console.error("Error while retrieving data from API");
+      throw new Error("Failed to get playlist item list");
+    }
+    return response.data;
   }
 
   public static async playlist(
@@ -40,6 +48,7 @@ export class YoutubeService {
 
     url = url.trim();
 
+    // Validator does not get "youtube.com/*" for some reason
     if (!ytdl.validateURL(url))
       return new ServiceErrorResponse<Song[]>(
         "Parameter must be an youtube playlist url"
@@ -50,25 +59,30 @@ export class YoutubeService {
       return new ServiceErrorResponse<Song[]>("URL doesn't have playlist id");
 
     // If playlist has more than 50 vids, check out youtube api request trashhold, to not get error, and fetch until we hit all videos.
+    const songs: Song[] = [];
+
     try {
-      const songs: Song[] = [];
-
-      // Make a recursion with request
-
       const reqUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${process.env.YOUTUBE_API_KEY}`;
-      const response = await axios.get(encodeURI(reqUrl));
 
-      const itemList: PlaylistItemListResponse = response.data;
+      let pooling = true;
+      while (pooling) {
+        const response = await this.requestPlaylistItemList(reqUrl);
 
-      for (const item of itemList.items) {
-        songs.push({
-          thumbnailUrl: item.snippet.thumbnails.default.url,
-          title: item.snippet.title,
-          url: this.getVideoUrlById(item.snippet.resourceId.videoId),
-        });
+        console.log("Got items", response.items);
+        for (const item of response.items) {
+          songs.push({
+            thumbnailUrl: item.snippet.thumbnails.default.url,
+            title: item.snippet.title,
+            url: this.getVideoUrlById(item.snippet.resourceId.videoId),
+          });
+        }
+
+        console.log("Got songs", response.items);
+
+        if (!response.nextPageToken) pooling = false;
       }
 
-      return new ServiceResponse<Song[]>([], "Temp", false);
+      return new ServiceResponse<Song[]>(songs);
     } catch (err) {
       console.error(err);
       return new ServiceErrorResponse<Song[]>(

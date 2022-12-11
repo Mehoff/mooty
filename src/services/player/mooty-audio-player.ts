@@ -147,8 +147,8 @@ export class MootyAudioPlayer {
     );
   }
 
-  private async _addToQueue(song: Song) {
-    this._queue.push(song);
+  private async _addToQueue(songs: Song[]) {
+    this._queue.push(...songs);
     await this._onAddToQueue();
   }
 
@@ -200,8 +200,8 @@ export class MootyAudioPlayer {
    * @param song Song to add
    * @returns Embeded discord message
    */
-  public async addSong(song: Song): Promise<EmbedBuilder> {
-    this._addToQueue(song);
+  public async add(...songs: Song[]): Promise<EmbedBuilder> {
+    this._addToQueue(songs);
     return EmbedGenerator.getSongAddedToQueueEmbed(this);
   }
 

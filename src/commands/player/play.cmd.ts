@@ -91,7 +91,7 @@ const Play: Command = {
     }
 
     // Add song to queue
-    const embed = await mooty.addSong(song);
+    const embed = await mooty.add(song);
     return await interaction.reply({ embeds: [embed] });
   },
 };
