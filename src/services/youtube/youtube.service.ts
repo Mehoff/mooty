@@ -28,9 +28,12 @@ export class YoutubeService {
     url: string,
     nextPageToken: string = ""
   ): Promise<PlaylistItemListResponse> {
-    const response = await axios.get(
-      encodeURI(nextPageToken ? url + `&nextPageToken=${nextPageToken}` : url)
-    );
+    const toGet =
+      nextPageToken !== "" ? url + `&nextPageToken=${nextPageToken}` : url;
+
+    console.log("ToGET: ", toGet);
+
+    const response = await axios.get(encodeURI(toGet));
 
     if (response.status !== 200) {
       console.error("Error while retrieving data from API");
@@ -65,19 +68,26 @@ export class YoutubeService {
       const reqUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${process.env.YOUTUBE_API_KEY}`;
 
       let pooling = true;
+      let nextPageToken: string = "";
       while (pooling) {
-        const response = await this.requestPlaylistItemList(reqUrl);
+        const response = await this.requestPlaylistItemList(
+          reqUrl,
+          nextPageToken
+        );
 
-        console.log("Got items", response.items);
         for (const item of response.items) {
-          songs.push({
-            thumbnailUrl: item.snippet.thumbnails.default.url,
-            title: item.snippet.title,
-            url: this.getVideoUrlById(item.snippet.resourceId.videoId),
-          });
+          if (item.snippet.thumbnails.default)
+            songs.push({
+              thumbnailUrl: item.snippet.thumbnails.default.url, // url undefined
+              title: item.snippet.title,
+              url: this.getVideoUrlById(item.snippet.resourceId.videoId),
+            });
         }
 
-        console.log("Got songs", response.items);
+        // Loops, no stopping
+        console.log(songs.length);
+
+        nextPageToken = response.nextPageToken;
 
         if (!response.nextPageToken) pooling = false;
       }

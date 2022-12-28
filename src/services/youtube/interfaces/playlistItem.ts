@@ -18,11 +18,11 @@ interface PlaylistItemSnippet {
   title: string;
   description: string;
   thumbnails: {
-    default: PlaylistItemSnippetThumbnail;
-    medium: PlaylistItemSnippetThumbnail;
-    high: PlaylistItemSnippetThumbnail;
-    standart: PlaylistItemSnippetThumbnail;
-    maxres: PlaylistItemSnippetThumbnail;
+    default: PlaylistItemSnippetThumbnail | undefined;
+    medium: PlaylistItemSnippetThumbnail | undefined;
+    high: PlaylistItemSnippetThumbnail | undefined;
+    standart: PlaylistItemSnippetThumbnail | undefined;
+    // maxres: PlaylistItemSnippetThumbnail;
   };
   channelTitle: string;
   videoOwnerChannelTitle: string;
