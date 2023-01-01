@@ -2,6 +2,7 @@ import ytdl from "ytdl-core";
 import axios from "axios";
 import { Readable } from "stream";
 import {
+  PlaylistItemListResponse,
   YoutubeVideoGetByURLItem,
   YoutubeVideoSearchResultItem,
 } from "./interfaces";
@@ -22,6 +23,83 @@ export class YoutubeService {
           }
         : undefined,
   };
+
+  private static async requestPlaylistItemList(
+    url: string,
+    nextPageToken: string = ""
+  ): Promise<PlaylistItemListResponse> {
+    const toGet =
+      nextPageToken !== "" ? url + `&nextPageToken=${nextPageToken}` : url;
+
+    console.log("ToGET: ", toGet);
+
+    const response = await axios.get(encodeURI(toGet));
+
+    if (response.status !== 200) {
+      console.error("Error while retrieving data from API");
+      throw new Error("Failed to get playlist item list");
+    }
+    return response.data;
+  }
+
+  public static async playlist(
+    interaction: ChatInputCommandInteraction<CacheType>
+  ): Promise<ServiceResponse<Song[]>> {
+    let url = interaction.options.getString("url");
+
+    if (!url) return new ServiceErrorResponse<Song[]>("URL was not provided");
+
+    url = url.trim();
+
+    // Validator does not get "youtube.com/*" for some reason
+    if (!ytdl.validateURL(url))
+      return new ServiceErrorResponse<Song[]>(
+        "Parameter must be an youtube playlist url"
+      );
+
+    const playlistId = url.split("&list=")[1];
+    if (!playlistId)
+      return new ServiceErrorResponse<Song[]>("URL doesn't have playlist id");
+
+    // If playlist has more than 50 vids, check out youtube api request trashhold, to not get error, and fetch until we hit all videos.
+    const songs: Song[] = [];
+
+    try {
+      const reqUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${process.env.YOUTUBE_API_KEY}`;
+
+      let pooling = true;
+      let nextPageToken: string = "";
+      while (pooling) {
+        const response = await this.requestPlaylistItemList(
+          reqUrl,
+          nextPageToken
+        );
+
+        for (const item of response.items) {
+          if (item.snippet.thumbnails.default)
+            songs.push({
+              thumbnailUrl: item.snippet.thumbnails.default.url, // url undefined
+              title: item.snippet.title,
+              url: this.getVideoUrlById(item.snippet.resourceId.videoId),
+            });
+        }
+
+        // Loops, no stopping
+        console.log(songs.length);
+
+        nextPageToken = response.nextPageToken;
+
+        if (!response.nextPageToken) pooling = false;
+      }
+
+      return new ServiceResponse<Song[]>(songs);
+    } catch (err) {
+      console.error(err);
+      return new ServiceErrorResponse<Song[]>(
+        "Failed to play youtube playlist"
+      );
+    }
+  }
 
   public static async handleQuery(
     interaction: ChatInputCommandInteraction<CacheType>
@@ -55,24 +133,7 @@ export class YoutubeService {
     const items: YoutubeVideoGetByURLItem[] = response.data.items;
     return this.sanitizeSongByURLItem(items[0]);
   }
-  // __Secure-1PSIDCC=AIKkIs2DlcsZNrvZ3VVoW92Lz7bLi0GbdA7X5iBSMFZxIFKkhUDwmaHffjR15NCjxQIoc7WqVfba
-  // __Secure-3PSIDCC=AIKkIs1f0PlpRako0beAB_RcggFZcgoMudADHIrYWbxLoUPvyuY7E5Ml6bWf_LWfOSR8zZ2B_qQ
 
-  // __Secure-1PSIDCC=AIKkIs2uCYzxOVLbG4yLo2HSUA_nQrjKocIPxgHxWMyj9ZnpgqpsBRgW3kkpk7G1zeYGc5rqTJEs;
-  // __Secure-1PAPISID=DlQPDNi0IQzrxHxy/AVJE5osAh7z7LEuFM;
-  // __Secure-1PSID=QQjqRHEmofliM6nrbtYf_QUyguAN0P5_Z_643lpmnn0QP7HX-Wxwai0i7ruPwYx7m_F6Hg.;
-  // __Secure-3PSIDCC=AIKkIs0XvBQqx3bLJtpBVfwlK9HURZ3j0wv9TPRJfJNbFz8ecYpb31StEiGXLauVT3L42dugz6w
-
-  // VISITOR_INFO1_LIVE=evfx6RgIiiI;
-  // HSID=ADNvAfeACrZgEv8lo; SSID=ATmuRJwNskhJlRZ8-;
-  // APISID=NQgTCxZtlwAeUO0R/AHYhBoPK4AwU3n9W5;
-  // SAPISID=DlQPDNi0IQzrxHxy/AVJE5osAh7z7LEuFM;
-  // YSC=y1dkvv-9nUw;
-  // LOGIN_INFO=AFmmF2swRQIhAP2CLTqcT60YlkQpCUL6KgbvRefJE1F8Gh7HJzAtXH99AiB1Kl4yvaqacdzKWXquUMxkNI4RTjpmK_USTHB0HuAqWw:QUQ3MjNmeHl4dWVGRWtNbFNTLXgtRDIybFBDYllidUhyQjFfZE4wNkVEbVRBa3ZHOV9CcVFoaGtwT1R2ZVRSNVFYMVR0NTdoREpxY0ZhbEltc2VuaVlwNTJxelpBX0hoWGhKT0dBdkx6QXZWQ0RCTXY0clhUbzI2d1VRaXhRWVNzTTNHUzVmMEVUcTZ1SjRNWjVybE5RazhjdTJqYl9ocjJR;
-  // SID=QQjqRHEmofliM6nrbtYf_QUyguAN0P5_Z_643lpmnn0QP7HXqrTNBcEshEi-kKkSZ08vDg.;
-  // SIDCC=AIKkIs2Xyt3RjUzjcOe0wLOD9Gji-jwjiA0d4hZC5RlzQ8iTOR0G4wSv7wxyLiwG5evwikVanqWp;
-  // PREF=tz=Europe.Kiev&f6=40000000&f5=30000&volume=2&library_tab_browse_id=FEmusic_liked_playlists&repeat=NONE&autoplay=true&has_user_changed_default_autoplay_mode=true&f7=100;
-  // wide=0;
   public static async getSongByQuery(query: string): Promise<Song> {
     const url = this.createYoutubeVideoSearchRequestUrl(query);
 

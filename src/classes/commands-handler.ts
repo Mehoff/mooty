@@ -3,16 +3,31 @@ dotenv.config();
 
 import fs from "fs";
 import path from "path";
-import { CacheType, Collection, CommandInteraction } from "discord.js";
+import {
+  CacheType,
+  Collection,
+  CommandInteraction,
+  CommandInteractionOptionResolver,
+} from "discord.js";
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import { Command } from "../interfaces";
+
+export enum BuildType {
+  PRODUCTION,
+  DEV,
+}
 
 type DeployCommandsOptions = {
   /**
    * Should deploy to test-server or globally
    */
   global: boolean;
+
+  /**
+   * Deploy commands to Mooty or MootyTest
+   */
+  build: BuildType;
 };
 
 export class CommandsHandler {
@@ -29,8 +44,12 @@ export class CommandsHandler {
     this.commands = new Collection();
   }
 
-  async deployCommands({ global }: DeployCommandsOptions) {
-    console.log(`Deploy commands ${global ? "globally" : ""} ...`);
+  async deployCommands({ global, build }: DeployCommandsOptions) {
+    console.info(
+      `Deploy commands ${global ? "globally" : ""} to ${
+        build === BuildType.DEV ? "development" : "production"
+      } build ...`
+    );
 
     if (!fs.existsSync(this.commandsFolderPath))
       throw new Error(`Path: ${this.commandsFolderPath} does not exist`);
@@ -48,16 +67,50 @@ export class CommandsHandler {
       this.commandsJSON.push(command.data.toJSON());
     }
 
-    const rest = new REST({ version: "9" }).setToken(
-      `${process.env.DISCORD_TOKEN}`
-    );
+    let token: string;
+    let clientId: string;
+
+    switch (build) {
+      case BuildType.PRODUCTION:
+        if (!process.env.DISCORD_PROD_TOKEN)
+          throw new Error(
+            `Bad DISCORD_PROD_TOKEN: ${process.env.DISCORD_PROD_TOKEN}`
+          );
+
+        if (!process.env.DISCORD_PROD_CLIENT_ID)
+          throw new Error(
+            `Bad DISCORD_PROD_CLIENT_ID: ${process.env.DISCORD_PROD_CLIENT_ID}`
+          );
+
+        token = `${process.env.DISCORD_PROD_TOKEN}`;
+        clientId = `${process.env.DISCORD_PROD_CLIENT_ID}`;
+        break;
+      case BuildType.DEV:
+        if (!process.env.DISCORD_DEV_TOKEN)
+          throw new Error(
+            `Bad DISCORD_DEV_TOKEN: ${process.env.DISCORD_DEV_TOKEN}`
+          );
+
+        if (!process.env.DISCORD_DEV_CLIENT_ID)
+          throw new Error(
+            `Bad DISCORD_DEV_CLIENT_ID: ${process.env.DISCORD_DEV_CLIENT_ID}`
+          );
+
+        token = `${process.env.DISCORD_DEV_TOKEN}`;
+        clientId = `${process.env.DISCORD_DEV_CLIENT_ID}`;
+        break;
+      default:
+        throw new Error("Bad token");
+    }
+
+    const rest = new REST({ version: "9" }).setToken(token);
 
     rest
       .put(
         global
-          ? Routes.applicationCommands(`${process.env.CLIENT_ID}`)
+          ? Routes.applicationCommands(clientId)
           : Routes.applicationGuildCommands(
-              `${process.env.CLIENT_ID}`,
+              clientId,
               `${process.env.GUILD_ID}`
             ),
         { body: this.commandsJSON }

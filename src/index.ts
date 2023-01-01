@@ -3,6 +3,7 @@ import path from "path";
 import { Client } from "discord.js";
 import { GatewayIntentBits } from "discord-api-types/v9";
 import { CommandsHandler } from "./classes";
+import { getDiscordToken } from "./helpers";
 dotenv.config();
 
 const commandsPath = path.join(__dirname, "commands");
@@ -27,4 +28,4 @@ client.on("interactionCreate", async (interaction) => {
   await commandsHandler.execute(interaction);
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(getDiscordToken(process.env.NODE_ENV));
