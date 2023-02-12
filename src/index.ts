@@ -10,6 +10,7 @@ import {
 import { GatewayIntentBits } from "discord-api-types/v9";
 import { CommandsHandler } from "./classes";
 import { getDiscordToken } from "./helpers";
+import { PlayerService } from "./services/player/player.service";
 dotenv.config();
 
 const commandsPath = path.join(__dirname, "commands");
@@ -52,11 +53,24 @@ client.on("voiceStateUpdate", (oldState: VoiceState, newState: VoiceState) => {
     const isBotLeft = oldState.channel.members.get(clientId!);
 
     if (oldState.channel.members.size === 1 && isBotLeft) {
-      console.log("No one left, wait for someone");
+      // TODO:
+
+      // Set current player state on pause, if it exists.
+      // Resume on someone connecting
+
       setTimeout(async () => {
-        console.log("Disconnect from VoiceChannel");
-        // Find mooty, and disconnect it there
-        await isBotLeft.voice.disconnect();
+        // TODO:
+
+        // Instead of just disonnecting, find Mooty instance, and delete player properly?
+        // Also, can add a auto-pause if no one in channel, and resume if some-one is reconnecting
+
+        // Check if someone is some one connected between start of setTimeout and function execution
+        // If so - do not disconnect
+
+        const mooty = PlayerService.getExistingPlayer(isBotLeft.guild.id);
+
+        if (!mooty) await isBotLeft.voice.disconnect();
+        else await mooty.destroy();
       }, 5000);
     }
   }

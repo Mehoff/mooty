@@ -195,6 +195,21 @@ export class MootyAudioPlayer {
     PlayerService.deletePlayer(this._guild);
   }
 
+  public async destroy() {
+    await this._channel.send({
+      embeds: [
+        EmbedGenerator.buildMessageEmbed(
+          "No one is here 😔",
+          "Disconnecting..."
+        ),
+      ],
+    });
+
+    this._player.stop();
+    await this._disconnect();
+    PlayerService.deletePlayer(this._guild);
+  }
+
   /**
    *
    *

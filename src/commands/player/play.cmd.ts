@@ -87,12 +87,6 @@ const Play: Command = {
         adapterCreator: interaction.guild?.voiceAdapterCreator!,
       };
 
-      // On voice.channel.member.disconnect -> If member.voice.channel.members === 0 -> setTimeout(() => disconnect())
-
-      // ?
-      // member.voice.channel?.members > 0
-
-      // Join to voice channel and subscribe to player
       const voiceConnection: VoiceConnection =
         joinVoiceChannel(connectionOptions);
 
