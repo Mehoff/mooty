@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
 import path from "path";
-import { Client } from "discord.js";
+import { Client, Guild, GuildMember, PartialGuildMember } from "discord.js";
 import { GatewayIntentBits } from "discord-api-types/v9";
 import { CommandsHandler } from "./classes";
+import { getDiscordToken } from "./helpers";
 dotenv.config();
 
 const commandsPath = path.join(__dirname, "commands");
@@ -27,4 +28,15 @@ client.on("interactionCreate", async (interaction) => {
   await commandsHandler.execute(interaction);
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.on(
+  "guildMemberUpdate",
+  async (
+    oldMember: GuildMember | PartialGuildMember,
+    newMember: GuildMember
+  ) => {
+    console.log(oldMember);
+    console.log(newMember);
+  }
+);
+
+client.login(getDiscordToken(process.env.NODE_ENV));

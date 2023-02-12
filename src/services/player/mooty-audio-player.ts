@@ -14,6 +14,7 @@ import {
   TextBasedChannel,
   Guild,
   Message,
+  Events,
 } from "discord.js";
 import { EmbedGenerator, Song } from "../../classes";
 import { shuffle } from "../../helpers";
