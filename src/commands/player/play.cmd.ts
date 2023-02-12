@@ -5,6 +5,7 @@ import {
   getVoiceConnection,
   VoiceConnectionDisconnectedState,
   VoiceConnectionStatus,
+  VoiceConnection,
 } from "@discordjs/voice";
 import {
   CacheType,
@@ -86,8 +87,16 @@ const Play: Command = {
         adapterCreator: interaction.guild?.voiceAdapterCreator!,
       };
 
+      // On voice.channel.member.disconnect -> If member.voice.channel.members === 0 -> setTimeout(() => disconnect())
+
+      // ?
+      // member.voice.channel?.members > 0
+
       // Join to voice channel and subscribe to player
-      joinVoiceChannel(connectionOptions).subscribe(mooty.player);
+      const voiceConnection: VoiceConnection =
+        joinVoiceChannel(connectionOptions);
+
+      voiceConnection.subscribe(mooty.player);
     }
 
     // Add song to queue
