@@ -14,6 +14,7 @@ import {
   TextBasedChannel,
   Guild,
   Message,
+  Events,
 } from "discord.js";
 import { EmbedGenerator, Song } from "../../classes";
 import { shuffle } from "../../helpers";
@@ -190,6 +191,21 @@ export class MootyAudioPlayer {
 
     this._player.stop();
 
+    await this._disconnect();
+    PlayerService.deletePlayer(this._guild);
+  }
+
+  public async destroy() {
+    await this._channel.send({
+      embeds: [
+        EmbedGenerator.buildMessageEmbed(
+          "No one is here 😔",
+          "Disconnecting..."
+        ),
+      ],
+    });
+
+    this._player.stop();
     await this._disconnect();
     PlayerService.deletePlayer(this._guild);
   }

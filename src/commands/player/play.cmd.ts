@@ -5,6 +5,7 @@ import {
   getVoiceConnection,
   VoiceConnectionDisconnectedState,
   VoiceConnectionStatus,
+  VoiceConnection,
 } from "@discordjs/voice";
 import {
   CacheType,
@@ -85,7 +86,7 @@ const Play: Command = {
         guildId: interaction.guildId!,
         adapterCreator: interaction.guild?.voiceAdapterCreator!,
       };
-
+      
       // Join to voice channel and subscribe to player
       connection = joinVoiceChannel(connectionOptions);
 

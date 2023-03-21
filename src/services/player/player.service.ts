@@ -24,6 +24,10 @@ export class PlayerService {
     return exists;
   }
 
+  static getExistingPlayer(guildId: string): MootyAudioPlayer | undefined {
+    return this.playersMap.get(guildId);
+  }
+
   static createPlayer = (interaction: ChatInputCommandInteraction<CacheType>) =>
     new MootyAudioPlayer(interaction);
 
