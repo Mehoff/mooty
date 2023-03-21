@@ -68,7 +68,7 @@ const Play: Command = {
     song.requestedBy = member;
 
     // Check if bot connected to a voice channel
-    const connection = getVoiceConnection(interaction.guildId!);
+    let connection = getVoiceConnection(interaction.guildId!);
 
     // Create new Mooty player instance or get existing
     const mooty: MootyAudioPlayer =
@@ -86,11 +86,26 @@ const Play: Command = {
         guildId: interaction.guildId!,
         adapterCreator: interaction.guild?.voiceAdapterCreator!,
       };
+      
+      // Join to voice channel and subscribe to player
+      connection = joinVoiceChannel(connectionOptions);
 
-      const voiceConnection: VoiceConnection =
-        joinVoiceChannel(connectionOptions);
+      if (connection === undefined)
+        return await interaction.reply({
+          embeds: [EmbedGenerator.buildMessageEmbed("Failed to connect")],
+        });
 
-      voiceConnection.subscribe(mooty.player);
+      connection.on("stateChange", (old_state, new_state) => {
+        if (
+          connection &&
+          old_state.status === VoiceConnectionStatus.Ready &&
+          new_state.status === VoiceConnectionStatus.Connecting
+        ) {
+          connection.configureNetworking();
+        }
+      });
+
+      connection.subscribe(mooty.player);
     }
 
     // Add song to queue
