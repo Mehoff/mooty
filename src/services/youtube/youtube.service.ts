@@ -45,6 +45,24 @@ export class YoutubeService {
     }
   }
 
+  public static async handleSearch(
+    interaction: ChatInputCommandInteraction<CacheType>
+  ): Promise<ServiceResponse<Song[]>> {
+    let query = interaction.options.getString("query");
+    if (!query) return new ServiceErrorResponse<Song[]>("Bad query, try again");
+
+    query = query.trim();
+
+    try {
+      const songs = await this.getSongsBySearchQuery(query);
+    } catch (err) {
+      console.error(err);
+      return new ServiceErrorResponse<Song[]>(
+        "Failed to search YouTube for songs"
+      );
+    }
+  }
+
   public static async getSongByURL(url: string): Promise<Song> {
     const id = ytdl.getURLVideoID(url);
     const reqUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${id}&key=${process.env.YOUTUBE_API_KEY}`;
@@ -64,6 +82,10 @@ export class YoutubeService {
 
     if (items[0]) return this.sanitizeSongFromVideoSearchResultItem(items[0]);
     else throw new Error("Youtube API did not respond");
+  }
+
+  public static async getSongsBySearchQuery(query: string, results = 10) {
+    // TODO: Search for songs
   }
 
   public static async getReadable(url: string): Promise<Readable> {
